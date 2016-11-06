@@ -1,31 +1,22 @@
 syntax = "proto3";
 
-message MetricT {
-    uint32 id          = 1;
-    string name        = 2;
-    uint32 create_time = 3;
-    uint32 update_time = 4;
-}
-
 message VariationT {
     uint32 id            = 1;
-    string name          = 2;
-    double split_percent = 3;
-    uint32 create_time   = 4;
-    uint32 update_time   = 5;
+    uint32 experiment_id = 2;
+    string name          = 3;
+    double split_percent = 4;
+    uint32 create_time   = 5;
+    uint32 update_time   = 6;
 }
 
 message ExperimentT {
-             uint32     id                   =  1;
-             string     name                 =  2;
-             uint32     version              =  3;
-             double     exposure_percent     =  4;
-             MetricT    primary_metric       =  5;
-             bool       is_active            =  6;
-             bool       usr_is_participating =  7;
-             VariationT usr_variation        =  8;
-             uint32     create_time          =  9;
-             uint32     update_time          = 10;
-    repeated VariationT variations           = 11;
-    repeated MetricT    other_metrics        = 12;
+     uint32     id                   =  1;
+     string     name                 =  2;
+     uint32     version              =  3;
+     double     exposure_percent     =  4;
+     bool       is_active            =  5;
+     bool       is_usr_participating =  6;
+     VariationT usr_variation        =  7;
+     uint32     create_time          =  8;
+     uint32     update_time          =  9;
 }

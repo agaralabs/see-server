@@ -9,6 +9,14 @@ var app       = express();
 app.use(bp.json());
 app.use(cp());
 
+app.get('/experiments', wrap(function* (req, res) {
+    var experiments = yield container.get('experiments_datamapper').fetchAll();
+
+    res.status(200);
+    res.json({ data: { experiments: experiments } });
+}));
+
+
 app.post('/experiments', wrap(function* (req, res) {
     var experiment = new models.ExperimentT(req.body.experiment);    
 
@@ -22,20 +30,11 @@ app.post('/experiments', wrap(function* (req, res) {
         return;
     }
 
-    if (!experiment.variations.length) {
-        res.status(400);
-        res.json({
-            err_code: 'BAD_DATA',
-            err_msg : 'Minimum one variation required to create experiment'
-        });
-        return;
-    }
-
     // Save it
     experiment.id = yield container.get('experiments_datamapper').insert(experiment);
 
     res.status(201);
-    res.json(experiment);
+    res.json({ data: { experiment: experiment } });
 }));
 
 app.get('/experiments/:id', wrap(function *(req, res, next) {
@@ -45,7 +44,7 @@ app.get('/experiments/:id', wrap(function *(req, res, next) {
         return next();
     }
 
-    res.json(experiment);
+    res.json({ data: { experiment: experiment } });
 }));
 
 app.put('/experiments/:id', wrap(function *(req, res, next) {
@@ -77,7 +76,75 @@ app.put('/experiments/:id', wrap(function *(req, res, next) {
         yield container.get('experiments_datamapper').upgradeVersion(patch);
     }
 
-    res.json(patch);
+    res.json({ data: { experiment: patch } });
+}));
+
+app.get('/experiments/:id/variations', wrap(function *(req, res, next) {
+    var experiment = yield container.get('experiments_datamapper').fetchById(req.params.id);
+
+    if (!experiment) {
+        return next();
+    }
+
+    var variations = yield container.get('variations_datamapper').fetchByExperimentId(req.params.id);
+    res.json({ data: { variations: variations } });
+}));
+
+app.post('/experiments/:id/variations', wrap(function *(req, res, next) {
+    var experiment = yield container.get('experiments_datamapper').fetchById(req.params.id);
+
+    if (!experiment) {
+        return next();
+    }
+
+    // validations
+    var variation = new models.VariationT(req.body.variation);
+    variation.experiment_id  = experiment.id;
+
+    if (!variation.name) {
+        res.status(400);
+        res.json({
+            err_code: 'BAD_DATA',
+            err_msg : 'Missing: variation name'
+        });
+        return;
+    }
+
+    // create
+    yield container.get('variations_datamapper').insert(variation);
+    res.status(201);
+    res.json({ data: { variation: variation } });
+}));
+
+app.put('/experiments/:experiment_id/variations/:variation_id', wrap(function *(req, res, next) {
+    var existing = yield container.get('variations_datamapper').fetchById(req.params.variation_id);
+
+    if (!existing) {
+        return next();
+    }
+
+    if (existing.experiment_id != req.params.experiment_id) {
+        return next();
+    }
+
+    // validations
+    var variation = new models.VariationT(req.body.variation);
+    variation.experiment_id  = existing.experiment_id;
+    variation.id             = existing.id;
+
+    if (!variation.name) {
+        res.status(400);
+        res.json({
+            err_code: 'BAD_DATA',
+            err_msg : 'Missing: variation name'
+        });
+        return;
+    }
+
+    // create
+    yield container.get('variations_datamapper').update(variation);
+    res.status(200);
+    res.json({ data: { variation: variation } });
 }));
 
 app.get('/allocate', wrap(function* (req, res) {
