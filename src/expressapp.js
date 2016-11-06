@@ -73,7 +73,7 @@ app.put('/experiments/:id', wrap(function *(req, res, next) {
 
     // increase version if required
     if (existing.exposure_percent !== patch.exposure_percent) {
-        yield container.get('experiments_datamapper').upgradeVersion(patch);
+        yield container.get('experiments_datamapper').upgradeVersion(patch.id);
     }
 
     res.json({ data: { experiment: patch } });
@@ -149,28 +149,34 @@ app.put('/experiments/:experiment_id/variations/:variation_id', wrap(function *(
 
 app.get('/allocate', wrap(function* (req, res) {
     // Get all active experiments
-    var experiments = yield container.get('experiments_datamapper').fetchActive();
+    var experiments = yield container.get('experiments_datamapper').fetchAllActive();
 
-    experiments.forEach(function (exp) {
-        // Decide participation
-        var rand                 = Math.random() * 100;
-        exp.usr_is_participating = rand - exp.exposure_percent < 0;
+    var tasks = experiments.map(function (exp) {
+        return function *() {
+            // Decide participation
+            var rand                 = Math.random() * 100;
+            exp.is_usr_participating = rand - exp.exposure_percent < 0;
 
-        // If participating, allocate bucket
-        if (exp.usr_is_participating) {
-            rand = Math.random() * 100;
-            var sum = 0;
-            for (var i = 0; i < exp.variations.length; ++i) {
-                if (rand - (sum + exp.variations[i].split_percent) < 0) {
-                    exp.usr_variation = exp.variations[i];
-                    break;
+            // If participating, allocate bucket
+            if (exp.is_usr_participating) {
+                // get variations
+                exp.variations = yield container.get('variations_datamapper').fetchByExperimentId(exp.id);
+
+                rand = Math.random() * 100;
+                var sum = 0;
+                for (var i = 0; i < exp.variations.length; ++i) {
+                    if (rand - (sum + exp.variations[i].split_percent) < 0) {
+                        exp.usr_variation = exp.variations[i];
+                        break;
+                    }
+                    sum += exp.variations[i].split_percent;
                 }
-                sum += exp.variations[i].split_percent;
             }
-        }
+        };
     });
 
-    res.json(experiments);
+    yield tasks;
+    res.json({ data: { experiments: experiments } });
 }));
 
 app.use(function (err, req, res, next) {

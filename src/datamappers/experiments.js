@@ -28,6 +28,8 @@ ExperimentsDm.prototype.fetchById = function (id) {
 };
 
 ExperimentsDm.prototype.fetchAll = function () {
+    var that = this;
+
     return co(function *() {
         var sql     = 'SELECT * FROM `experiments`;';
         var results = yield that.pool.pquery(sql);
@@ -38,6 +40,8 @@ ExperimentsDm.prototype.fetchAll = function () {
 }
 
 ExperimentsDm.prototype.fetchAllActive = function () {
+    var that = this;
+
     return co(function *() {
         var sql     = 'SELECT * FROM `experiments` WHERE `is_active` = 1;';
         var results = yield that.pool.pquery(sql);
@@ -70,11 +74,11 @@ ExperimentsDm.prototype.update = function (experiment) {
         var sql    = 'UPDATE `experiments` SET ? WHERE `id` = ?;';
         var result = yield that.pool.pquery(sql, [
             {
-                name            : variation.name,
-                exposure_percent: variation.exposure_percent,
-                is_active       : variation.is_active,
+                name            : experiment.name,
+                exposure_percent: experiment.exposure_percent,
+                is_active       : experiment.is_active,
             },
-            variation.id
+            experiment.id
         ]);
         return result.changedRows;
     });
