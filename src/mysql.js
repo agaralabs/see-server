@@ -16,6 +16,8 @@ function pquery(sql, params) {
             if (err) {
                 return reject(err);
             }
+            console.log();
+            console.log('exec----> ',mysql.format(sql.sql ? sql.sql : sql, params));
             conn.query(sql, params, function (err, result) {
                 conn.release();
                 if (err) {

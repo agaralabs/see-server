@@ -38,6 +38,48 @@ app.post('/experiments', wrap(function* (req, res) {
     res.json(experiment);
 }));
 
+app.get('/experiments/:id', wrap(function *(req, res, next) {
+    var experiment = yield container.get('experiments_datamapper').fetchById(req.params.id);
+
+    if (!experiment) {
+        return next();
+    }
+
+    res.json(experiment);
+}));
+
+app.put('/experiments/:id', wrap(function *(req, res, next) {
+    // fetch existing
+    var existing = yield container.get('experiments_datamapper').fetchById(req.params.id);
+
+    if (!existing) {
+        return next();
+    }
+
+    var patch = new models.ExperimentT(req.body.experiment); 
+
+    // Validations
+    if (!patch.name) {
+        res.status(400);
+        res.json({
+            err_code: 'BAD_DATA',
+            err_msg : 'Missing: experiment name'
+        });
+        return;
+    }
+
+    // update
+    patch.id = req.params.id;
+    yield container.get('experiments_datamapper').update(patch);
+
+    // increase version if required
+    if (existing.exposure_percent !== patch.exposure_percent) {
+        yield container.get('experiments_datamapper').upgradeVersion(patch);
+    }
+
+    res.json(patch);
+}));
+
 app.get('/allocate', wrap(function* (req, res) {
     // Get all active experiments
     var experiments = yield container.get('experiments_datamapper').fetchActive();
