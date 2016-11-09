@@ -147,12 +147,57 @@ app.put('/experiments/:experiment_id/variations/:variation_id', wrap(function *(
     res.json({ data: { variation: variation } });
 }));
 
+function serialize(dict) {
+    var set = [];
+    for (var key in dict) {
+        if (dict.hasOwnProperty(key)) {
+            set.push(dict[key]);
+        }
+    }
+
+    return set
+        .map(function (exp) {
+            return [
+                exp.id,
+                exp.version,
+                exp.is_usr_participating ? exp.usr_variation.id : 0
+            ].join(':');
+        })
+        .join(',');
+}
+
+function unserialize(str) {
+    var dict = {};
+    str.split(',').forEach(function (expstr) {
+        var parts                = expstr.split(':');
+        var exp                  = new models.ExperimentT();
+        exp.id                   = Number(parts[0]);
+        exp.version              = Number(parts[1]);
+        exp.is_usr_participating = parts[2] !== '0';
+        if (exp.is_usr_participating) {
+            exp.usr_variation    = new models.VariationT();
+            exp.usr_variation.id = Number(parts[2]);
+        }
+        dict[parts[0]]           = exp;
+    });
+    return dict;
+}
+
 app.get('/allocate', wrap(function* (req, res) {
+    var allocated_dict = unserialize(req.query.current || '');
+
     // Get all active experiments
     var experiments = yield container.get('experiments_datamapper').fetchAllActive();
 
+    var dict = {};
+
     var tasks = experiments.map(function (exp) {
         return function *() {
+            // If user has same version, skip
+            if (allocated_dict[exp.id] && allocated_dict[exp.id].version === exp.version) {
+                return;
+            }
+
             // Decide participation
             var rand                 = Math.random() * 100;
             exp.is_usr_participating = rand - exp.exposure_percent < 0;
@@ -172,11 +217,13 @@ app.get('/allocate', wrap(function* (req, res) {
                     sum += exp.variations[i].split_percent;
                 }
             }
+
+            dict[exp.id] = exp;
         };
     });
 
     yield tasks;
-    res.json({ data: { experiments: experiments } });
+    res.json({ data: { experiments: experiments, serialized : serialize(dict) } });
 }));
 
 app.use(function (err, req, res, next) {
