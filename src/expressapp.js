@@ -184,17 +184,17 @@ function unserialize(str) {
 }
 
 app.get('/allocate', wrap(function* (req, res) {
-    var allocated_dict = unserialize(req.query.current || '');
+    var dict = req.query.current ? unserialize(req.query.current) : {};
 
     // Get all active experiments
     var experiments = yield container.get('experiments_datamapper').fetchAllActive();
 
-    var dict = {};
-
     var tasks = experiments.map(function (exp) {
         return function *() {
             // If user has same version, skip
-            if (allocated_dict[exp.id] && allocated_dict[exp.id].version === exp.version) {
+            if (dict[exp.id] && dict[exp.id].version === exp.version) {
+                exp.is_usr_participating = dict[exp.id].is_usr_participating;
+                exp.usr_variation        = dict[exp.id].usr_variation;
                 return;
             }
 
