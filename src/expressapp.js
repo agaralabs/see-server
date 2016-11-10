@@ -31,10 +31,13 @@ app.post('/experiments', wrap(function* (req, res) {
     }
 
     // Save it
-    experiment.id = yield container.get('experiments_datamapper').insert(experiment);
+    var id = yield container.get('experiments_datamapper').insert(experiment);
+
+    // fetch again
+    var fetched = yield container.get('experiments_datamapper').fetchById(id);
 
     res.status(201);
-    res.json({ data: { experiment: experiment } });
+    res.json({ data: { experiment: fetched } });
 }));
 
 app.get('/experiments/:id', wrap(function *(req, res, next) {
@@ -73,10 +76,13 @@ app.put('/experiments/:id', wrap(function *(req, res, next) {
 
     // increase version if required
     if (existing.exposure_percent !== patch.exposure_percent) {
-        yield container.get('experiments_datamapper').upgradeVersion(patch.id);
+        yield container.get('experiments_datamapper').upgradeVersion(req.params.id);
     }
 
-    res.json({ data: { experiment: patch } });
+    // fetch again
+    var fetched = yield container.get('experiments_datamapper').fetchById(req.params.id);
+
+    res.json({ data: { experiment: fetched } });
 }));
 
 app.get('/experiments/:id/variations', wrap(function *(req, res, next) {
@@ -111,9 +117,13 @@ app.post('/experiments/:id/variations', wrap(function *(req, res, next) {
     }
 
     // create
-    yield container.get('variations_datamapper').insert(variation);
+    var id = yield container.get('variations_datamapper').insert(variation);
+ 
+    // fetch again
+    var fetched = yield container.get('variations_datamapper').fetchById(id);
+
     res.status(201);
-    res.json({ data: { variation: variation } });
+    res.json({ data: { variation: fetched } });
 }));
 
 app.put('/experiments/:experiment_id/variations/:variation_id', wrap(function *(req, res, next) {
@@ -141,10 +151,14 @@ app.put('/experiments/:experiment_id/variations/:variation_id', wrap(function *(
         return;
     }
 
-    // create
+    // update
     yield container.get('variations_datamapper').update(variation);
+  
+    // fetch again
+    var fetched = yield container.get('variations_datamapper').fetchById(req.params.variation_id);
+
     res.status(200);
-    res.json({ data: { variation: variation } });
+    res.json({ data: { variation: fetched } });
 }));
 
 function serialize(dict) {
