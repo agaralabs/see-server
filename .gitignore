@@ -1,5 +1,4 @@
 dist/
 node_modules/
-types.js
 *.swp
 *.bak
