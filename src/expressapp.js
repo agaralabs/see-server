@@ -9,6 +9,10 @@ var app       = express();
 app.use(bp.json());
 app.use(cp());
 
+app.get('/track', function (req, res) {
+    res.send('ok!');
+});
+
 app.get('/experiments', wrap(function* (req, res) {
     var experiments = yield container.get('experiments_datamapper').fetchAll();
 
