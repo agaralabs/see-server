@@ -37,19 +37,7 @@ ExperimentsDm.prototype.fetchAll = function () {
             return sqlToObj(row);
         });
     });
-}
-
-ExperimentsDm.prototype.fetchAllActive = function () {
-    var that = this;
-
-    return co(function *() {
-        var sql     = 'SELECT * FROM `experiments` WHERE `is_active` = 1;';
-        var results = yield that.pool.pquery(sql);
-        return results.map(function (row) {
-            return sqlToObj(row);
-        });
-    });
-}
+};
 
 ExperimentsDm.prototype.insert = function (experiment) {
     var that = this;

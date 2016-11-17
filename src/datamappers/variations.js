@@ -36,7 +36,7 @@ VariationsDm.prototype.fetchByExperimentId = function (id) {
             return sqlToObj(row);
         });
     });
-}
+};
 
 VariationsDm.prototype.insert = function (variation) {
     var that = this;

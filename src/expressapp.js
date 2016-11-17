@@ -34,7 +34,11 @@ app.post('/experiments', wrap(function* (req, res) {
     var id = yield container.get('experiments_datamapper').insert(experiment);
 
     // fetch again
-    var fetched = yield container.get('experiments_datamapper').fetchById(id);
+    var fetched        = yield container.get('experiments_datamapper').fetchById(id);
+    fetched.variations = yield container.get('variations_datamapper').fetchByExperimentId(id);
+
+    // update cache
+    yield container.get('experiments_cachemapper').reloadExperiment(fetched);
 
     res.status(201);
     res.json({ data: { experiment: fetched } });
@@ -80,7 +84,11 @@ app.put('/experiments/:id', wrap(function *(req, res, next) {
     }
 
     // fetch again
-    var fetched = yield container.get('experiments_datamapper').fetchById(req.params.id);
+    var fetched        = yield container.get('experiments_datamapper').fetchById(req.params.id);
+    fetched.variations = yield container.get('variations_datamapper').fetchByExperimentId(req.params.id);
+
+    // update cache
+    yield container.get('experiments_cachemapper').reloadExperiment(fetched);
 
     res.json({ data: { experiment: fetched } });
 }));
@@ -120,7 +128,11 @@ app.post('/experiments/:id/variations', wrap(function *(req, res, next) {
     var id = yield container.get('variations_datamapper').insert(variation);
  
     // fetch again
-    var fetched = yield container.get('variations_datamapper').fetchById(id);
+    var fetched           = yield container.get('variations_datamapper').fetchById(id);
+    experiment.variations = yield container.get('variations_datamapper').fetchByExperimentId(req.params.id);
+
+    // update cache
+    yield container.get('experiments_cachemapper').reloadExperiment(experiment);
 
     res.status(201);
     res.json({ data: { variation: fetched } });
@@ -155,7 +167,15 @@ app.put('/experiments/:experiment_id/variations/:variation_id', wrap(function *(
     yield container.get('variations_datamapper').update(variation);
   
     // fetch again
-    var fetched = yield container.get('variations_datamapper').fetchById(req.params.variation_id);
+ 
+    // fetch again
+    var fetched           = yield container.get('variations_datamapper').fetchById(req.params.variation_id);
+    var experiment        = yield container.get('experiments_datamapper').fetchById(req.params.experiment_id);
+    experiment.variations = yield container.get('variations_datamapper').fetchByExperimentId(req.params.experiment_id);
+
+    // update cache
+    yield container.get('experiments_cachemapper').reloadExperiment(experiment);
+
 
     res.status(200);
     res.json({ data: { variation: fetched } });
@@ -201,42 +221,36 @@ app.get('/allocate', wrap(function* (req, res) {
     var dict = req.query.current ? unserialize(req.query.current) : {};
 
     // Get all active experiments
-    var experiments = yield container.get('experiments_datamapper').fetchAllActive();
+    var experiments = yield container.get('experiments_cachemapper').fetchAllActive();
 
-    var tasks = experiments.map(function (exp) {
-        return function *() {
-            // If user has same version, skip
-            if (dict[exp.id] && dict[exp.id].version === exp.version) {
-                exp.is_usr_participating = dict[exp.id].is_usr_participating;
-                exp.usr_variation        = dict[exp.id].usr_variation;
-                return;
-            }
+    experiments.forEach(function (exp) {
+        // If user has same version, skip
+        if (dict[exp.id] && dict[exp.id].version === exp.version) {
+            exp.is_usr_participating = dict[exp.id].is_usr_participating;
+            exp.usr_variation        = dict[exp.id].usr_variation;
+            return;
+        }
 
-            // Decide participation
-            var rand                 = Math.random() * 100;
-            exp.is_usr_participating = rand - exp.exposure_percent < 0;
+        // Decide participation
+        var rand                 = Math.random() * 100;
+        exp.is_usr_participating = rand - exp.exposure_percent < 0;
 
-            // If participating, allocate bucket
-            if (exp.is_usr_participating) {
-                // get variations
-                exp.variations = yield container.get('variations_datamapper').fetchByExperimentId(exp.id);
-
-                rand = Math.random() * 100;
-                var sum = 0;
-                for (var i = 0; i < exp.variations.length; ++i) {
-                    if (rand - (sum + exp.variations[i].split_percent) < 0) {
-                        exp.usr_variation = exp.variations[i];
-                        break;
-                    }
-                    sum += exp.variations[i].split_percent;
+        // If participating, allocate bucket
+        if (exp.is_usr_participating) {
+            rand = Math.random() * 100;
+            var sum = 0;
+            for (var i = 0; i < exp.variations.length; ++i) {
+                if (rand - (sum + exp.variations[i].split_percent) < 0) {
+                    exp.usr_variation = exp.variations[i];
+                    break;
                 }
+                sum += exp.variations[i].split_percent;
             }
+        }
 
-            dict[exp.id] = exp;
-        };
+        dict[exp.id] = exp;
     });
 
-    yield tasks;
     res.json({ data: { experiments: experiments, serialized : serialize(dict) } });
 }));
 
