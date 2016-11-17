@@ -38,4 +38,19 @@ ExperimentsCm.prototype.reloadExperiment = function (exp) {
         });
 };
 
+ExperimentsCm.prototype.purge = function () {
+    var that = this;
+
+    return that.client.smembersAsync('active_exp_set')
+        .then(function (ids) {
+            var tasks = ids.map(function (id) {
+                return that.client.delAsync('exp_id_' + id);
+            });
+            return Promise.all(tasks);
+        })
+        .then(function () {
+            return that.client.delAsync('active_exp_set');
+        });
+};
+
 module.exports = ExperimentsCm;
