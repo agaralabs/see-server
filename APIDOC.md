@@ -207,3 +207,41 @@ Content-Type: application/json
   }
 }
 ```
+
+### Upgrade experiment version
+
+**Request:**
+```sh
+curl -i -X POST "http://see.com/experiments/7/version"
+```
+
+**Response:**
+```
+HTTP/1.1 201 Created
+Content-Type: application/json
+
+{
+  "data": {
+    "version": 8
+  }
+}
+```
+
+### Get current experiment version
+
+**Request:**
+```sh
+curl -i "http://see.com/experiments/7/version"
+```
+
+**Response:**
+```
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+  "data": {
+    "version": 8
+  }
+}
+```

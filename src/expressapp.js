@@ -78,11 +78,6 @@ app.put('/experiments/:id', wrap(function *(req, res, next) {
     patch.id = req.params.id;
     yield container.get('experiments_datamapper').update(patch);
 
-    // increase version if required
-    if (existing.exposure_percent !== patch.exposure_percent) {
-        yield container.get('experiments_datamapper').upgradeVersion(req.params.id);
-    }
-
     // fetch again
     var fetched        = yield container.get('experiments_datamapper').fetchById(req.params.id);
     fetched.variations = yield container.get('variations_datamapper').fetchByExperimentId(req.params.id);
@@ -92,6 +87,38 @@ app.put('/experiments/:id', wrap(function *(req, res, next) {
 
     res.json({ data: { experiment: fetched } });
 }));
+
+app.get('/experiments/:id/version', wrap(function *(req, res, next) {
+    var experiment = yield container.get('experiments_datamapper').fetchById(req.params.id);
+
+    if (!experiment) {
+        return next();
+    }
+
+    res.json({ data: { version: experiment.version } });
+}));
+
+app.post('/experiments/:id/version', wrap(function *(req, res, next) {
+    var experiment = yield container.get('experiments_datamapper').fetchById(req.params.id);
+
+    if (!experiment) {
+        return next();
+    }
+
+    // increment version
+    yield container.get('experiments_datamapper').upgradeVersion(req.params.id);
+
+    // fetch again
+    var fetched           = yield container.get('experiments_datamapper').fetchById(req.params.id);
+    fetched.variations = yield container.get('variations_datamapper').fetchByExperimentId(req.params.id);
+
+    // update cache
+    yield container.get('experiments_cachemapper').reloadExperiment(fetched);
+
+    res.status(201);
+    res.json({ data: { version: fetched.version } });
+}));
+
 
 app.get('/experiments/:id/variations', wrap(function *(req, res, next) {
     var experiment = yield container.get('experiments_datamapper').fetchById(req.params.id);
