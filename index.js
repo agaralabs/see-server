@@ -1,12 +1,12 @@
 var models = require('./types');
 var cookie = require('js-cookie');
+var uuid   = require('uuid');
 var fetch  = require('whatwg-fetch').fetch;
 var qs     = require('querystring');
 
 function App(opts) {
     this.opts  = {
-        storage_key_name: 'see_alloc',
-        base_url        : 'http://localhost:8080'
+        base_url: 'http://localhost:8080'
     };
 
     if (opts) {
@@ -21,7 +21,7 @@ function App(opts) {
 App.prototype.allocate = function () {
     var that = this;
 
-    return getStorage(this.opts.storage_key_name)
+    return getStorage('allocstr')
         .then(function (allocstr) {
             var uri = that.opts.base_url +
                 '/allocate?' +
@@ -36,7 +36,7 @@ App.prototype.allocate = function () {
             return resp.json();
         })
         .then(function (body) {
-            return setStorage(that.opts.storage_key_name, body.data.serialized)
+            return setStorage('allocstr', body.data.serialized)
                 .then(function () {
                     return body;
                 });
@@ -51,9 +51,13 @@ App.prototype.allocate = function () {
 App.prototype.track = function (event, params) {
     var that = this;
 
-    return getStorage(this.opts.storage_key_name)
-        .then(function (allocstr) {
-            params.alloc = allocstr;
+    return Promise.all([
+        getStorage('allocstr'),
+        getId()
+    ])
+        .then(function (results) {
+            params.alloc = results[0];
+            params.uid   = results[1];
             params.event = event;
             var uri      = that.opts.base_url + '/track?' + qs.stringify(params);
 
@@ -66,6 +70,21 @@ App.prototype.track = function (event, params) {
             return true;
         });
 };
+
+function getId() {
+    return getStorage('uid')
+        .then(function (uid) {
+            if (uid) {
+                return uid;
+            }
+
+            uid = uuid.v1();
+            return setStorage('uid', uid)
+                .then(function () {
+                    return uid;
+                });
+        });
+}
 
 function getStorage(key) {
     return Promise.resolve(cookie.get(key));
