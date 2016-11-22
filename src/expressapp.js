@@ -119,7 +119,6 @@ app.post('/experiments/:id/version', wrap(function *(req, res, next) {
     res.json({ data: { version: fetched.version } });
 }));
 
-
 app.get('/experiments/:id/variations', wrap(function *(req, res, next) {
     var experiment = yield container.get('experiments_datamapper').fetchById(req.params.id);
 
@@ -163,6 +162,16 @@ app.post('/experiments/:id/variations', wrap(function *(req, res, next) {
 
     res.status(201);
     res.json({ data: { variation: fetched } });
+}));
+
+app.get('/experiments/:experiment_id/variations/:id', wrap(function *(req, res, next) {
+    var variation = yield container.get('variations_datamapper').fetchById(req.params.id);
+
+    if (!variation) {
+        return next();
+    }
+
+    res.json({ data: { variation: variation } });
 }));
 
 app.put('/experiments/:experiment_id/variations/:variation_id', wrap(function *(req, res, next) {
