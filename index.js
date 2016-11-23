@@ -42,6 +42,12 @@ App.prototype.allocate = function () {
                 });
         })
         .then(function (body) {
+            return that.track.call(that, "participation")
+                .then(function () {
+                    return body;
+                });
+        })
+        .then(function (body) {
             return body.data.experiments.map(function (exp) {
                 return new models.ExperimentT(exp);
             });
@@ -49,6 +55,7 @@ App.prototype.allocate = function () {
 };
 
 App.prototype.track = function (event, params) {
+    params = params || {};
     var that = this;
 
     return Promise.all([
