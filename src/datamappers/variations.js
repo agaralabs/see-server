@@ -11,6 +11,7 @@ function sqlToObj(row) {
     v.name             = row.name;
     v.experiment_id    = row.experiment_id;
     v.split_percent    = row.split_percent;
+    v.is_deleted       = Boolean(row.is_deleted);
     v.create_time      = Number(row.create_time);
     v.update_time      = Number(row.update_time);
     return v;
@@ -65,6 +66,15 @@ VariationsDm.prototype.update = function (variation) {
             },
             variation.id
         ]);
+    });
+};
+
+VariationsDm.prototype.delete = function (id) {
+    var that = this;
+
+    return co(function *() {
+        var sql    = 'UPDATE `variations` SET `is_deleted` = 1 WHERE `id` = ?;';
+        var result = yield that.pool.pquery(sql, [ id ]);
     });
 };
 

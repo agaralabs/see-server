@@ -30,6 +30,7 @@ Content-Type: application/json
       "is_active": false,
       "is_usr_participating": false,
       "usr_variation": null,
+      "is_deleted": 0,
       "create_time": 1478739059000,
       "update_time": 0,
       "variations": []
@@ -58,6 +59,41 @@ Content-Type: application/json
   }
 }
 ```
+
+### Delete experiment
+
+**Request:**
+```sh
+curl -i \
+    -X DELETE \
+    -H "Content-type: application/json" \
+    "http://see.com/experiments/7"
+```
+
+**Response:**
+```
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+  "data": {
+    "experiment": {
+      "id": 7,
+      "name": "Secure msg on checkout page",
+      "version": 2,
+      "exposure_percent": 11,
+      "is_active": true,
+      "is_usr_participating": false,
+      "usr_variation": null,
+      "is_deleted": 1,
+      "create_time": 1478738270000,
+      "update_time": 1478738985000,
+      "variations": []
+    }
+  }
+}
+```
+
 
 ### Update experiment
 
@@ -93,7 +129,9 @@ Content-Type: application/json
       "exposure_percent": 11,
       "is_active": true,
       "is_usr_participating": false,
+      "is_deleted": 0,
       "usr_variation": null,
+      "create_time": 1478738270000,
       "create_time": 1478738270000,
       "update_time": 1478738985000,
       "variations": []
@@ -130,6 +168,7 @@ Content-Type: application/json
       "experiment_id": 7,
       "name": "CONTROL",
       "split_percent": 50,
+      "is_deleted": 0,
       "create_time": 1478739343000,
       "update_time": 0
     }
@@ -157,6 +196,7 @@ Content-Type: application/json
         "experiment_id": 7,
         "name": "CONTROL",
         "split_percent": 50,
+        "is_deleted": 0,
         "create_time": 1478739343000,
         "update_time": 0
       },
@@ -165,10 +205,41 @@ Content-Type: application/json
         "experiment_id": 7,
         "name": "TREATMENT",
         "split_percent": 50,
+        "is_deleted": 0,
         "create_time": 1478739473000,
         "update_time": 0
       }
     ]
+  }
+}
+```
+
+### Delete variation
+
+**Request:**
+```sh
+curl -i \
+    -X DELETE \
+    -H "Content-type: application/json" \
+    "http://see.com/experiments/7/variations/6"
+```
+
+**Response:**
+```
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+  "data": {
+    "variation": {
+      "id": 6,
+      "experiment_id": 7,
+      "name": "Secure payment msg",
+      "split_percent": 50,
+      "is_deleted": 1,
+      "create_time": 1478739473000,
+      "update_time": 1478739616000
+    }
   }
 }
 ```
@@ -201,6 +272,7 @@ Content-Type: application/json
       "experiment_id": 7,
       "name": "Secure payment msg",
       "split_percent": 50,
+      "is_deleted": 0,
       "create_time": 1478739473000,
       "update_time": 1478739616000
     }

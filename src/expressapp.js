@@ -11,6 +11,9 @@ app.use(cp());
 
 app.get('/experiments', wrap(function* (req, res) {
     var experiments = yield container.get('experiments_datamapper').fetchAll();
+    experiments     = experiments.filter(function (exp) {
+        return !exp.is_deleted;
+    });
 
     res.status(200);
     res.json({ data: { experiments: experiments } });
@@ -36,6 +39,9 @@ app.post('/experiments', wrap(function* (req, res) {
     // fetch again
     var fetched        = yield container.get('experiments_datamapper').fetchById(id);
     fetched.variations = yield container.get('variations_datamapper').fetchByExperimentId(id);
+    fetched.variations = fetched.variations.filter(function (vrtn) {
+        return !vrtn.is_deleted;
+    });
 
     // update cache
     yield container.get('experiments_cachemapper').reloadExperiment(fetched);
@@ -51,14 +57,51 @@ app.get('/experiments/:id', wrap(function *(req, res, next) {
         return next();
     }
 
+    if (experiment.is_deleted) {
+        return next();
+    }
+
     res.json({ data: { experiment: experiment } });
 }));
+
+app.delete('/experiments/:id', wrap(function *(req, res, next) {
+    // fetch existing
+    var existing = yield container.get('experiments_datamapper').fetchById(req.params.id);
+
+    if (!existing) {
+        return next();
+    }
+
+    if (existing.is_deleted) {
+        return next();
+    }
+
+    // delete
+    yield container.get('experiments_datamapper').delete(existing.id);
+
+    // fetch again
+    var fetched        = yield container.get('experiments_datamapper').fetchById(req.params.id);
+    fetched.variations = yield container.get('variations_datamapper').fetchByExperimentId(req.params.id);
+    fetched.variations = fetched.variations.filter(function (vrtn) {
+        return !vrtn.is_deleted;
+    });
+
+    // update cache
+    yield container.get('experiments_cachemapper').reloadExperiment(fetched);
+
+    res.json({ data: { experiment: fetched } });
+}));
+
 
 app.put('/experiments/:id', wrap(function *(req, res, next) {
     // fetch existing
     var existing = yield container.get('experiments_datamapper').fetchById(req.params.id);
 
     if (!existing) {
+        return next();
+    }
+
+    if (existing.is_deleted) {
         return next();
     }
 
@@ -81,6 +124,9 @@ app.put('/experiments/:id', wrap(function *(req, res, next) {
     // fetch again
     var fetched        = yield container.get('experiments_datamapper').fetchById(req.params.id);
     fetched.variations = yield container.get('variations_datamapper').fetchByExperimentId(req.params.id);
+    fetched.variations = fetched.variations.filter(function (vrtn) {
+        return !vrtn.is_deleted;
+    });
 
     // update cache
     yield container.get('experiments_cachemapper').reloadExperiment(fetched);
@@ -95,6 +141,10 @@ app.get('/experiments/:id/version', wrap(function *(req, res, next) {
         return next();
     }
 
+    if (experiment.is_deleted) {
+        return next();
+    }
+
     res.json({ data: { version: experiment.version } });
 }));
 
@@ -105,12 +155,19 @@ app.post('/experiments/:id/version', wrap(function *(req, res, next) {
         return next();
     }
 
+    if (experiment.is_deleted) {
+        return next();
+    }
+
     // increment version
     yield container.get('experiments_datamapper').upgradeVersion(req.params.id);
 
     // fetch again
-    var fetched           = yield container.get('experiments_datamapper').fetchById(req.params.id);
+    var fetched        = yield container.get('experiments_datamapper').fetchById(req.params.id);
     fetched.variations = yield container.get('variations_datamapper').fetchByExperimentId(req.params.id);
+    fetched.variations = fetched.variations.filter(function (vrtn) {
+        return !vrtn.is_deleted;
+    });
 
     // update cache
     yield container.get('experiments_cachemapper').reloadExperiment(fetched);
@@ -126,7 +183,15 @@ app.get('/experiments/:id/variations', wrap(function *(req, res, next) {
         return next();
     }
 
+    if (experiment.is_deleted) {
+        return next();
+    }
+
     var variations = yield container.get('variations_datamapper').fetchByExperimentId(req.params.id);
+    variations     = variations.filter(function (vrtn) {
+        return !vrtn.is_deleted;
+    });
+
     res.json({ data: { variations: variations } });
 }));
 
@@ -134,6 +199,10 @@ app.post('/experiments/:id/variations', wrap(function *(req, res, next) {
     var experiment = yield container.get('experiments_datamapper').fetchById(req.params.id);
 
     if (!experiment) {
+        return next();
+    }
+
+    if (experiment.is_deleted) {
         return next();
     }
 
@@ -156,6 +225,9 @@ app.post('/experiments/:id/variations', wrap(function *(req, res, next) {
     // fetch again
     var fetched           = yield container.get('variations_datamapper').fetchById(id);
     experiment.variations = yield container.get('variations_datamapper').fetchByExperimentId(req.params.id);
+    experiment.variations = experiment.variations.filter(function (vrtn) {
+        return !vrtn.is_deleted;
+    });
 
     // update cache
     yield container.get('experiments_cachemapper').reloadExperiment(experiment);
@@ -165,9 +237,23 @@ app.post('/experiments/:id/variations', wrap(function *(req, res, next) {
 }));
 
 app.get('/experiments/:experiment_id/variations/:id', wrap(function *(req, res, next) {
+    var experiment = yield container.get('experiments_datamapper').fetchById(req.params.experiment_id);
+
+    if (!experiment) {
+        return next();
+    }
+
+    if (experiment.is_deleted) {
+        return next();
+    }
+
     var variation = yield container.get('variations_datamapper').fetchById(req.params.id);
 
     if (!variation) {
+        return next();
+    }
+
+    if (variation.experiment_id !== experiment.id) {
         return next();
     }
 
@@ -175,13 +261,27 @@ app.get('/experiments/:experiment_id/variations/:id', wrap(function *(req, res, 
 }));
 
 app.put('/experiments/:experiment_id/variations/:variation_id', wrap(function *(req, res, next) {
+    var experiment = yield container.get('experiments_datamapper').fetchById(req.params.experiment_id);
+
+    if (!experiment) {
+        return next();
+    }
+
+    if (experiment.is_deleted) {
+        return next();
+    }
+
     var existing = yield container.get('variations_datamapper').fetchById(req.params.variation_id);
 
     if (!existing) {
         return next();
     }
 
-    if (existing.experiment_id != req.params.experiment_id) {
+    if (existing.is_deleted) {
+        return next();
+    }
+
+    if (existing.experiment_id !== experiment.id) {
         return next();
     }
 
@@ -205,13 +305,60 @@ app.put('/experiments/:experiment_id/variations/:variation_id', wrap(function *(
     // fetch again
  
     // fetch again
-    var fetched           = yield container.get('variations_datamapper').fetchById(req.params.variation_id);
-    var experiment        = yield container.get('experiments_datamapper').fetchById(req.params.experiment_id);
-    experiment.variations = yield container.get('variations_datamapper').fetchByExperimentId(req.params.experiment_id);
+    var fetched           = yield container.get('variations_datamapper').fetchById(existing.id);
+    experiment            = yield container.get('experiments_datamapper').fetchById(experiment.id);
+    experiment.variations = yield container.get('variations_datamapper').fetchByExperimentId(experiment.id);
+    experiment.variations = experiment.variations.filter(function (vrtn) {
+        return !vrtn.is_deleted;
+    });
 
     // update cache
     yield container.get('experiments_cachemapper').reloadExperiment(experiment);
 
+
+    res.status(200);
+    res.json({ data: { variation: fetched } });
+}));
+
+
+app.delete('/experiments/:experiment_id/variations/:variation_id', wrap(function *(req, res, next) {
+    var experiment = yield container.get('experiments_datamapper').fetchById(req.params.experiment_id);
+
+    if (!experiment) {
+        return next();
+    }
+
+    if (experiment.is_deleted) {
+        return next();
+    }
+
+    var existing = yield container.get('variations_datamapper').fetchById(req.params.variation_id);
+
+    if (!existing) {
+        return next();
+    }
+
+    if (existing.is_deleted) {
+        return next();
+    }
+
+    if (existing.experiment_id !== experiment.id) {
+        return next();
+    }
+
+    // delete
+    yield container.get('variations_datamapper').delete(existing.id);
+
+    // fetch again
+    var fetched           = yield container.get('variations_datamapper').fetchById(existing.id);
+    experiment            = yield container.get('experiments_datamapper').fetchById(experiment.id);
+    experiment.variations = yield container.get('variations_datamapper').fetchByExperimentId(experiment.id);
+    experiment.variations = experiment.variations.filter(function (vrtn) {
+        return !vrtn.is_deleted;
+    });
+
+    // update cache
+    yield container.get('experiments_cachemapper').reloadExperiment(experiment);
 
     res.status(200);
     res.json({ data: { variation: fetched } });

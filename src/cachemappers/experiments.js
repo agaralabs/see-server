@@ -25,7 +25,7 @@ ExperimentsCm.prototype.fetchAllActive = function () {
 ExperimentsCm.prototype.reloadExperiment = function (exp) {
     var that = this;
 
-    if (!exp.is_active) {
+    if (!exp.is_active || exp.is_deleted) {
         return this.client.sremAsync('active_exp_set', ['' + exp.id])
             .then(function () {
                 return that.client.delAsync('exp_id_' + exp.id);

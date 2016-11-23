@@ -5,8 +5,9 @@ message VariationT {
     uint32 experiment_id = 2;
     string name          = 3;
     double split_percent = 4;
-    uint32 create_time   = 5;
-    uint32 update_time   = 6;
+    bool   is_deleted    = 5;
+    uint32 create_time   = 6;
+    uint32 update_time   = 7;
 }
 
 message ExperimentT {
@@ -17,7 +18,8 @@ message ExperimentT {
      bool       is_active             =  5;
      bool       is_usr_participating  =  6;
      VariationT usr_variation         =  7;
-     uint32     create_time           =  8;
-     uint32     update_time           =  9;
-     repeated   VariationT variations = 10;
+     bool       is_deleted            =  8;
+     uint32     create_time           =  9;
+     uint32     update_time           = 10;
+     repeated   VariationT variations = 11;
 }

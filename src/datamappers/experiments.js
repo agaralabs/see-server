@@ -12,6 +12,7 @@ function sqlToObj(row) {
     e.exposure_percent = row.exposure_percent;
     e.version          = row.version;
     e.is_active        = Boolean(row.is_active);
+    e.is_deleted       = Boolean(row.is_deleted);
     e.create_time      = Number(row.create_time);
     e.update_time      = Number(row.update_time);
     return e;
@@ -77,6 +78,16 @@ ExperimentsDm.prototype.upgradeVersion = function (id) {
 
     return co(function *() {
         var sql    = 'UPDATE `experiments` SET `version` = `version` + 1 WHERE `id` = ?;';
+        var result = yield that.pool.pquery(sql, [ id ]);
+        return result.changedRows;
+    });
+};
+
+ExperimentsDm.prototype.delete = function (id) {
+    var that = this;
+
+    return co(function *() {
+        var sql    = 'UPDATE `experiments` SET `is_deleted` = 1 WHERE `id` = ?;';
         var result = yield that.pool.pquery(sql, [ id ]);
         return result.changedRows;
     });
