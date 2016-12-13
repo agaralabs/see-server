@@ -30,15 +30,21 @@ module.exports = require("protobufjs").newBuilder({})['import']({
                 },
                 {
                     "rule": "optional",
-                    "type": "uint32",
-                    "name": "create_time",
+                    "type": "bool",
+                    "name": "is_deleted",
                     "id": 5
                 },
                 {
                     "rule": "optional",
                     "type": "uint32",
-                    "name": "update_time",
+                    "name": "create_time",
                     "id": 6
+                },
+                {
+                    "rule": "optional",
+                    "type": "uint32",
+                    "name": "update_time",
+                    "id": 7
                 }
             ]
         },
@@ -89,21 +95,27 @@ module.exports = require("protobufjs").newBuilder({})['import']({
                 },
                 {
                     "rule": "optional",
-                    "type": "uint32",
-                    "name": "create_time",
+                    "type": "bool",
+                    "name": "is_deleted",
                     "id": 8
                 },
                 {
                     "rule": "optional",
                     "type": "uint32",
-                    "name": "update_time",
+                    "name": "create_time",
                     "id": 9
+                },
+                {
+                    "rule": "optional",
+                    "type": "uint32",
+                    "name": "update_time",
+                    "id": 10
                 },
                 {
                     "rule": "repeated",
                     "type": "VariationT",
                     "name": "variations",
-                    "id": 10
+                    "id": 11
                 }
             ]
         }

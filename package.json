@@ -1,6 +1,6 @@
 {
   "name": "see-js",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "Client side js for Stayzilla Experimentation Engine",
   "main": "index.js",
   "scripts": {
