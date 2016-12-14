@@ -410,7 +410,17 @@ app.get('/allocate', wrap(function* (req, res) {
         // If user has same version, skip
         if (dict[exp.id] && dict[exp.id].version === exp.version) {
             exp.is_usr_participating = dict[exp.id].is_usr_participating;
-            exp.usr_variation        = dict[exp.id].usr_variation;
+            // set user variation info
+            if (exp.is_usr_participating) {
+                exp.variations.forEach(function (vrtn) {
+                    if (vrtn.id === dict[exp.id].usr_variation.id) {
+                        exp.usr_variation = vrtn;
+                    }
+                });
+            } else {
+                exp.usr_variation = null;
+            }
+            dict[exp.id] = exp;
             return;
         }
 
