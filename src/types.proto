@@ -22,4 +22,11 @@ message ExperimentT {
      uint32     create_time           =  9;
      uint32     update_time           = 10;
      repeated   VariationT variations = 11;
+     string     metric_name           = 12;
+}
+
+message UniqueCountT {
+    ExperimentT experiment   = 1;
+    string      metric_name  = 2;
+    uint32      unique_count = 3;
 }

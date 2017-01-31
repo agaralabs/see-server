@@ -364,6 +364,21 @@ app.delete('/experiments/:experiment_id/variations/:variation_id', wrap(function
     res.json({ data: { variation: fetched } });
 }));
 
+app.get('/experiments/:experiment_id/stats/counts/:version', wrap(function *(req, res, next) {
+   var experiment = yield container.get('experiments_datamapper').fetchById(req.params.experiment_id);
+
+    if (!experiment) {
+        return next();
+    }
+
+    if (experiment.is_deleted) {
+        return next();
+    }
+
+    var results = yield container.get('stats').fetchEventCounts(req.params.experiment_id, req.params.version, 'srp_card_cta_click');
+    res.json({ data: { counts: results } });
+}));
+
 function serialize(dict) {
     var set = [];
     for (var key in dict) {

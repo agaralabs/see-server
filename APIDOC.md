@@ -33,7 +33,8 @@ Content-Type: application/json
       "is_deleted": 0,
       "create_time": 1478739059000,
       "update_time": 0,
-      "variations": []
+      "variations": [],
+      "metric_name": ""
     }
   }
 }
@@ -88,7 +89,8 @@ Content-Type: application/json
       "is_deleted": 1,
       "create_time": 1478738270000,
       "update_time": 1478738985000,
-      "variations": []
+      "variations": [],
+      "metric_name": ""
     }
   }
 }
@@ -109,7 +111,8 @@ curl -i \
         "experiment": {
             "name": "Secure msg on checkout page",
             "exposure_percent": 10.5,
-            "is_active": true
+            "is_active": true,
+            "metric_name": "pay_btn_click"
         }
     }' \
     "http://see.com/experiments/7"
@@ -134,7 +137,8 @@ Content-Type: application/json
       "create_time": 1478738270000,
       "create_time": 1478738270000,
       "update_time": 1478738985000,
-      "variations": []
+      "variations": [],
+      "metric_name": "pay_btn_click"
     }
   }
 }
@@ -314,6 +318,65 @@ Content-Type: application/json
 {
   "data": {
     "version": 8
+  }
+}
+```
+
+### Get experiment stats
+
+#### Get event counts
+
+Pass a request of the form: `/experiments/<experiment_id>/stats/counts/<version>`,
+
+**Request:**
+```sh
+curl -i "http://see.com/experiments/2/stats/counts/1"
+```
+
+**Response:**
+```
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+  "data": {
+    "counts": [
+      {
+        "experiment": {
+          "id": 2,
+          // ...
+          "usr_variation": {
+            "id": 0,
+            // ...
+          },
+        },
+        "metric_name": "participation",
+        "unique_count": "170"
+      },
+      {
+        "experiment": {
+          // ...
+          "usr_variation": {
+            "id": 3,
+            // ...
+          },
+        },
+        "metric_name": "participation",
+        "unique_count": "24"
+      },
+      {
+        "experiment": {
+          "id": 2,
+          // ...
+          "usr_variation": {
+            "id": 0,
+            // ...
+          },
+        },
+        "metric_name": "srp_card_cta_click",
+        "unique_count": "1"
+      }
+    ]
   }
 }
 ```

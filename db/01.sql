@@ -1,0 +1,1 @@
+ALTER TABLE `experiments` ADD COLUMN `metric_name` VARCHAR(250) DEFAULT NULL;

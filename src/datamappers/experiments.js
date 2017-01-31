@@ -11,6 +11,7 @@ function sqlToObj(row) {
     e.name             = row.name;
     e.exposure_percent = row.exposure_percent;
     e.version          = row.version;
+    e.metric_name      = row.metric_name;
     e.is_active        = Boolean(row.is_active);
     e.is_deleted       = Boolean(row.is_deleted);
     e.create_time      = Number(row.create_time);
@@ -44,12 +45,13 @@ ExperimentsDm.prototype.insert = function (experiment) {
     var that = this;
 
     return co(function *() {
-        var sql = 'INSERT INTO `experiments`(`name`, `exposure_percent`, `is_active`, `version`) VALUES(?, ?, ?, ?);';
+        var sql = 'INSERT INTO `experiments`(`name`, `exposure_percent`, `is_active`, `version`, `metric_name`) VALUES(?, ?, ?, ?, ?);';
         var result = yield that.pool.pquery(sql, [
             experiment.name,
             experiment.exposure_percent,
             false,
-            1
+            1,
+            experiment.metric_name
         ]);
         experiment.id = result.insertId;
         return result.insertId;
@@ -66,6 +68,7 @@ ExperimentsDm.prototype.update = function (experiment) {
                 name            : experiment.name,
                 exposure_percent: experiment.exposure_percent,
                 is_active       : experiment.is_active,
+                metric_name     : experiment.metric_name
             },
             experiment.id
         ]);
