@@ -4,10 +4,10 @@ create table records(
     experiment_version integer not null encode mostly8,
     variation_id integer not null encode mostly8,
     event_name varchar(100) not null encode runlength,
-    time timestamp not null encode delta sortkey,
+    time timestamptz not null encode delta sortkey,
     ip varchar(15) not null encode lzo,
     method VARCHAR(10) null encode runlength,
-    path text not null encode text255,
-    referer varchar(10000) encode text255,
-    agent varchar(10000) encode text255
+    path varchar(10000) not null encode lzo,
+    referer varchar(10000) encode lzo,
+    agent varchar(10000) encode lzo
 );
