@@ -75,17 +75,17 @@ public class Task
 {
     public static void main(String[] args)
     {
-        if (args.length != 2) {
-            System.out.println("Usage: <cmd> FROM_DATE TO_DATE");
+        if (args.length != 4) {
+            System.out.println("Arguments: INPUT_PREFIX OUTPUT_PREFIX FROM_DATE TO_DATE");
             System.exit(1);
         }
 
-        ZonedDateTime from = ZonedDateTime.parse(args[0]).withZoneSameInstant(ZoneId.of("UTC"));
-        ZonedDateTime to   = ZonedDateTime.parse(args[1]).withZoneSameInstant(ZoneId.of("UTC"));
+        ZonedDateTime from = ZonedDateTime.parse(args[2]).withZoneSameInstant(ZoneId.of("UTC"));
+        ZonedDateTime to   = ZonedDateTime.parse(args[3]).withZoneSameInstant(ZoneId.of("UTC"));
 
         // build path
         ArrayList<String> path_parts = new ArrayList<String>();
-        path_parts.add("s3a://see-tracker-data/nginx");
+        path_parts.add(args[0]);
 
         if (from.getYear() == to.getYear()) {
             path_parts.add(String.format("%02d", from.getYear()));
@@ -118,18 +118,17 @@ public class Task
         SparkConf conf       = new SparkConf().setAppName("SEE - nginx parser");
         JavaSparkContext sc  = new JavaSparkContext(conf);
 
-        //JavaRDD<String> infile = sc.textFile(input_path);
-        JavaRDD<String> infile = sc.textFile("/home/hithaeglir/stl");
+        JavaRDD<String> infile = sc.textFile(input_path);
 
         JavaRDD<String> csvLines = infile
             .filter((line) -> {
                 Gson gson = new Gson();
                 Event ev  = gson.fromJson(line, Event.class);
 
-                ZonedDateTime candidate  = ZonedDateTime.parse(ev.time).withZoneSameInstant(ZoneId.of("UTC"));
-                boolean result = !(candidate.toLocalTime().isBefore(from.toLocalTime())) && !(candidate.toLocalTime().isAfter(to.toLocalTime()));
-                System.out.println(from + " / " + candidate + " / " + to + " = " + result);
-                return result;
+                ZonedDateTime candidate = ZonedDateTime.parse(ev.time).withZoneSameInstant(ZoneId.of("UTC"));
+                boolean isInBetween = !candidate.toLocalDateTime().isBefore(from.toLocalDateTime()) && !candidate.toLocalDateTime().isAfter(to.toLocalDateTime());
+                System.out.println(from + " / " + candidate + " / " + to + " = " + isInBetween);
+                return isInBetween;
             })
             .flatMap((line) -> {
                 Gson gson    = new Gson();
@@ -149,22 +148,23 @@ public class Task
                 ArrayList<String> records = new ArrayList<String>();
 
                 for (final String exp: parts) {
-                    final List<String> segments = Arrays.asList(exp.split(":"));
-                    Event ev                    = new Event(parsed);
-                    ev.experiment_id            = Integer.parseInt(segments.get(0));
-                    ev.experiment_version       = Integer.parseInt(segments.get(1));
-                    ev.variation_id             = Integer.parseInt(segments.get(2));
-
-                    records.add(ev.toCSVString());
+                    try {
+                        final List<String> segments = Arrays.asList(exp.split(":"));
+                        Event ev                    = new Event(parsed);
+                        ev.experiment_id            = Integer.parseInt(segments.get(0));
+                        ev.experiment_version       = Integer.parseInt(segments.get(1));
+                        ev.variation_id             = Integer.parseInt(segments.get(2));
+                        records.add(ev.toCSVString());
+                    } catch(NumberFormatException e) {
+                        System.out.println("## ERROR in path: " + parsed.path);
+                        continue;
+                    }
                 }
 
                 return records.iterator();
             });
 
-        ZonedDateTime now = ZonedDateTime.now();
-
-        csvLines.saveAsTextFile("/home/hithaeglir/stl-out/" + now.format(DateTimeFormatter.ISO_INSTANT) + "/csv");
-        //csvLines.saveAsTextFile("s3a://see-tracker-data/csv/" + now.format(DateTimeFormatter.ISO_INSTANT) + "/parts");
+        csvLines.saveAsTextFile(args[1]);
 
         System.out.println( "done" );
     }
