@@ -375,7 +375,7 @@ app.get('/experiments/:experiment_id/stats/counts/:version', wrap(function *(req
         return next();
     }
 
-    var results = yield container.get('stats').fetchEventCounts(req.params.experiment_id, req.params.version, 'srp_card_cta_click');
+    var results = yield container.get('stats').fetchEventCounts(req.params.experiment_id, req.params.version, experiment.metric_name);
     res.json({ data: { counts: results } });
 }));
 
