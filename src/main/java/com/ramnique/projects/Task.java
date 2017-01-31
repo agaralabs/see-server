@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Arrays;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -49,7 +50,7 @@ class Event {
     }
 
     String toCSVString() {
-        ZonedDateTime t = ZonedDateTime.parse(time);
+        ZonedDateTime t = ZonedDateTime.parse(time).withZoneSameInstant(ZoneId.of("UTC"));
 
         ArrayList<String> cols = new ArrayList<String>();
         cols.add(uid);
@@ -72,48 +73,98 @@ class Event {
 
 public class Task 
 {
-    public static void main( String[] args )
+    public static void main(String[] args)
     {
-        SparkConf conf         = new SparkConf().setAppName("My first app");
-        JavaSparkContext sc    = new JavaSparkContext(conf);
+        if (args.length != 2) {
+            System.out.println("Usage: <cmd> FROM_DATE TO_DATE");
+            System.exit(1);
+        }
 
-        JavaRDD<String> infile = sc.textFile("s3a://see-tracker-data/nginx/*/*/*/*/*.gz");
-        //JavaRDD<String> infile = sc.textFile("/home/hithaeglir/stl");
+        ZonedDateTime from = ZonedDateTime.parse(args[0]).withZoneSameInstant(ZoneId.of("UTC"));
+        ZonedDateTime to   = ZonedDateTime.parse(args[1]).withZoneSameInstant(ZoneId.of("UTC"));
 
-        JavaRDD<String> csvLines = infile.flatMap((line) -> {
-            Gson gson    = new Gson();
-            Event parsed = gson.fromJson(line, Event.class);
+        // build path
+        ArrayList<String> path_parts = new ArrayList<String>();
+        path_parts.add("s3a://see-tracker-data/nginx");
 
-            final List<NameValuePair> params = URLEncodedUtils.parse(parsed.path.substring(7), StandardCharsets.UTF_8);
-            HashMap<String, String> paramMap = new HashMap<String, String>();
+        if (from.getYear() == to.getYear()) {
+            path_parts.add(String.format("%02d", from.getYear()));
 
-            for (final NameValuePair nv: params) {
-                paramMap.put(nv.getName(), nv.getValue());
+            if (from.getMonthValue() == to.getMonthValue()) {
+                path_parts.add(String.format("%02d", from.getMonthValue()));
+
+                if (from.getDayOfMonth() == to.getDayOfMonth()) {
+                    path_parts.add(String.format("%02d", from.getDayOfMonth()));
+
+                    if (from.getHour() == to.getHour()) {
+                        path_parts.add(String.format("%02d", from.getHour()));
+                    } else {
+                        path_parts.add("*");
+                    }
+                } else {
+                    path_parts.add("*/*");
+                }
+            } else {
+                path_parts.add("*/*/*");
             }
+        } else {
+            path_parts.add("*/*/*/*");
+        }
+        path_parts.add("*.gz");
 
-            parsed.uid               = paramMap.get("uid");
-            parsed.event_name        = paramMap.get("event");
-            final List<String> parts = Arrays.asList(paramMap.get("alloc").split(","));
+        String input_path = String.join("/", path_parts);
+        System.out.println("Getting files from: " + input_path);
 
-            ArrayList<String> records = new ArrayList<String>();
+        SparkConf conf       = new SparkConf().setAppName("SEE - nginx parser");
+        JavaSparkContext sc  = new JavaSparkContext(conf);
 
-            for (final String exp: parts) {
-                final List<String> segments = Arrays.asList(exp.split(":"));
-                Event ev                    = new Event(parsed);
-                ev.experiment_id            = Integer.parseInt(segments.get(0));
-                ev.experiment_version       = Integer.parseInt(segments.get(1));
-                ev.variation_id             = Integer.parseInt(segments.get(2));
+        //JavaRDD<String> infile = sc.textFile(input_path);
+        JavaRDD<String> infile = sc.textFile("/home/hithaeglir/stl");
 
-                records.add(ev.toCSVString());
-            }
+        JavaRDD<String> csvLines = infile
+            .filter((line) -> {
+                Gson gson = new Gson();
+                Event ev  = gson.fromJson(line, Event.class);
 
-            return records.iterator();
-        });
+                ZonedDateTime candidate  = ZonedDateTime.parse(ev.time).withZoneSameInstant(ZoneId.of("UTC"));
+                boolean result = !(candidate.toLocalTime().isBefore(from.toLocalTime())) && !(candidate.toLocalTime().isAfter(to.toLocalTime()));
+                System.out.println(from + " / " + candidate + " / " + to + " = " + result);
+                return result;
+            })
+            .flatMap((line) -> {
+                Gson gson    = new Gson();
+                Event parsed = gson.fromJson(line, Event.class);
+ 
+                final List<NameValuePair> params = URLEncodedUtils.parse(parsed.path.substring(7), StandardCharsets.UTF_8);
+                HashMap<String, String> paramMap = new HashMap<String, String>();
+
+                for (final NameValuePair nv: params) {
+                    paramMap.put(nv.getName(), nv.getValue());
+                }
+
+                parsed.uid               = paramMap.get("uid");
+                parsed.event_name        = paramMap.get("event");
+                final List<String> parts = Arrays.asList(paramMap.get("alloc").split(","));
+
+                ArrayList<String> records = new ArrayList<String>();
+
+                for (final String exp: parts) {
+                    final List<String> segments = Arrays.asList(exp.split(":"));
+                    Event ev                    = new Event(parsed);
+                    ev.experiment_id            = Integer.parseInt(segments.get(0));
+                    ev.experiment_version       = Integer.parseInt(segments.get(1));
+                    ev.variation_id             = Integer.parseInt(segments.get(2));
+
+                    records.add(ev.toCSVString());
+                }
+
+                return records.iterator();
+            });
 
         ZonedDateTime now = ZonedDateTime.now();
 
-        //csvLines.saveAsTextFile("/home/hithaeglir/stl-out/" + now.format(DateTimeFormatter.ISO_INSTANT) + "/csv");
-        csvLines.saveAsTextFile("s3a://see-tracker-data/csv/" + now.format(DateTimeFormatter.ISO_INSTANT) + "/parts");
+        csvLines.saveAsTextFile("/home/hithaeglir/stl-out/" + now.format(DateTimeFormatter.ISO_INSTANT) + "/csv");
+        //csvLines.saveAsTextFile("s3a://see-tracker-data/csv/" + now.format(DateTimeFormatter.ISO_INSTANT) + "/parts");
 
         System.out.println( "done" );
     }
