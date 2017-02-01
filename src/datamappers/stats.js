@@ -27,6 +27,7 @@ Stats.prototype.fetchEventCounts = function (exp_id, version_id, event_name) {
             'from records',
             'where experiment_id = $1',
             'and experiment_version = $2',
+            'and agent not in (select distinct agent from bad_agents)',
             'group by variation_id, event_name',
             'having event_name = $3 or event_name = $4'
         ].join(' ');
