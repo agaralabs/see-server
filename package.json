@@ -1,0 +1,25 @@
+{
+  "name": "see-spark",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@bitbucket.org/ramnique/see-mgmt.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "homepage": "https://bitbucket.org/ramnique/see-mgmt#readme",
+  "dependencies": {
+    "co": "^4.6.0",
+    "co-sleep": "0.0.1",
+    "exec-sh": "^0.2.0",
+    "moment": "^2.17.1",
+    "moment-timezone": "^0.5.11",
+    "pg": "^6.1.2",
+    "uuid": "^3.0.1"
+  }
+}
