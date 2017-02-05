@@ -86,7 +86,7 @@ function init() {
         yield shellex(cmd);
 
         // Wait for cluster to terminate
-        cmd = 'aws emr wait cluster-terminated --cluster-id ' + parsed.ClusterId;
+        cmd = 'until aws emr wait cluster-terminated --cluster-id ' + parsed.ClusterId + '; do echo "wait timed out.. trying again"; sleep 2; done';
         yield shellex(cmd);
 
         // Clear redshift
