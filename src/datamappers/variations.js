@@ -9,6 +9,7 @@ function sqlToObj(row) {
     var v = new models.VariationT();
     v.id               = row.id;
     v.name             = row.name;
+    v.is_control       = Boolean(row.is_control);
     v.experiment_id    = row.experiment_id;
     v.split_percent    = row.split_percent;
     v.is_deleted       = Boolean(row.is_deleted);
@@ -31,7 +32,7 @@ VariationsDm.prototype.fetchByExperimentId = function (id) {
     var that = this;
 
     return co(function *() {
-        var sql     = 'SELECT * FROM `variations` WHERE `experiment_id` = ?;';
+        var sql     = 'SELECT * FROM `variations` WHERE `experiment_id` = ? ORDER BY `id`;';
         var results = yield that.pool.pquery(sql, [ id ]);
         return results.map(function (row) {
             return sqlToObj(row);
@@ -43,10 +44,11 @@ VariationsDm.prototype.insert = function (variation) {
     var that = this;
 
     return co(function *() {
-        var sql = 'INSERT INTO `variations`(`experiment_id`, `name`, `split_percent`) VALUES(?, ?, ?);';
+        var sql = 'INSERT INTO `variations`(`experiment_id`, `name`, `is_control`, `split_percent`) VALUES(?, ?, ?, ?);';
         var result = yield that.pool.pquery(sql, [
             variation.experiment_id,
             variation.name,
+            variation.is_control,
             variation.split_percent
         ]);
         variation.id = result.insertId;

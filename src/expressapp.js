@@ -9,6 +9,20 @@ var app       = express();
 app.use(bp.json());
 app.use(cp());
 
+app.use(function(req, res, next) {
+ res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+    // intercept OPTIONS method
+    if ('OPTIONS' == req.method) {
+      res.send(200);
+    }
+    else {
+      next();
+    }
+});
+
 app.get('/experiments', wrap(function* (req, res) {
     var experiments = yield container.get('experiments_datamapper').fetchAll();
     experiments     = experiments.filter(function (exp) {
@@ -35,6 +49,15 @@ app.post('/experiments', wrap(function* (req, res) {
 
     // Save it
     var id = yield container.get('experiments_datamapper').insert(experiment);
+
+    // Add control variation
+    var vrtn = new models.VariationT({
+        name         : 'CONTROL',
+        split_percent: 50,
+        is_control   : true,
+        experiment_id: id
+    });
+    yield container.get('variations_datamapper').insert(vrtn);
 
     // fetch again
     var fetched        = yield container.get('experiments_datamapper').fetchById(id);
@@ -209,6 +232,7 @@ app.post('/experiments/:id/variations', wrap(function *(req, res, next) {
     // validations
     var variation = new models.VariationT(req.body.variation);
     variation.experiment_id  = experiment.id;
+    variation.is_control     = false;
 
     if (!variation.name) {
         res.status(400);
@@ -299,6 +323,11 @@ app.put('/experiments/:experiment_id/variations/:variation_id', wrap(function *(
         return;
     }
 
+    // dont change name if control variation
+    if (existing.is_control) {
+        variation.name = existing.name;
+    }
+
     // update
     yield container.get('variations_datamapper').update(variation);
   
@@ -346,6 +375,16 @@ app.delete('/experiments/:experiment_id/variations/:variation_id', wrap(function
         return next();
     }
 
+    // dont allow delete if control variation
+    if (existing.is_control) {
+        res.status(403);
+        res.json({
+            err_code: 'FORBIDDEN',
+            err_msg : 'Cannot delete a CONTROL variation'
+        });
+        return;
+    }
+
     // delete
     yield container.get('variations_datamapper').delete(existing.id);
 
@@ -364,8 +403,8 @@ app.delete('/experiments/:experiment_id/variations/:variation_id', wrap(function
     res.json({ data: { variation: fetched } });
 }));
 
-app.get('/experiments/:experiment_id/stats/counts/:version', wrap(function *(req, res, next) {
-   var experiment = yield container.get('experiments_datamapper').fetchById(req.params.experiment_id);
+app.get('/experiments/:experiment_id/stats/counts', wrap(function *(req, res, next) {
+    var experiment = yield container.get('experiments_datamapper').fetchById(req.params.experiment_id);
 
     if (!experiment) {
         return next();
@@ -375,8 +414,21 @@ app.get('/experiments/:experiment_id/stats/counts/:version', wrap(function *(req
         return next();
     }
 
-    var results = yield container.get('stats').fetchEventCounts(req.params.experiment_id, req.params.version, experiment.metric_name);
-    res.json({ data: { counts: results } });
+    experiment.variations = yield container.get('variations_datamapper').fetchByExperimentId(experiment.id);
+
+    var tasks = experiment.variations.map(function (vrtn) {
+        return container.get('stats').fetchEventCounts(
+            experiment.id,
+            req.query.version ? req.query.version : experiment.version,
+            vrtn.id
+        ).then(function (counts) {
+            vrtn.unique_counts = counts;
+        });
+    });
+
+    yield tasks;
+
+    res.json({ data: { variations: experiment.variations } });
 }));
 
 function serialize(dict) {
