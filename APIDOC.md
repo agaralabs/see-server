@@ -326,11 +326,11 @@ Content-Type: application/json
 
 #### Get event counts
 
-Pass a request of the form: `/experiments/<experiment_id>/stats/counts/<version>`,
+Pass a request of the form: `/experiments/<experiment_id>/stats/counts`,
 
 **Request:**
 ```sh
-curl -i "http://see.com/experiments/2/stats/counts/1"
+curl -i "http://see.com/experiments/2/stats/counts"
 ```
 
 **Response:**
@@ -340,42 +340,95 @@ Content-Type: application/json
 
 {
   "data": {
-    "counts": [
+    "variations": [
       {
-        "experiment": {
-          "id": 2,
-          // ...
-          "usr_variation": {
-            "id": 0,
+        id: 1,
+        name: 'control',
+        "unique_counts": [
+            {
+                name: "participation",
+                value: 170
+            },
+            {
+                name: "btn_click",
+                value: 20
+            },
             // ...
-          },
-        },
-        "metric_name": "participation",
-        "unique_count": "170"
+        ]
+      }, {
+        id: 2,
+        name: 'treatment',
+        "unique_counts": [
+            {
+                name: "participation",
+                value: 172
+            },
+            {
+                name: "btn_click",
+                value: 35
+            },
+            // ...
+        ]
       },
+      // ...
+    ]
+  }
+}
+```
+
+#### Get counts by time range
+
+Pass a request of the form: `/experiments/<experiment_id>/stats/timeline/<from>/<to>/<granularity>`,
+
+    where <granularity> may be one of [ 'daily', 'hourly', 'monthly' ]
+
+**Request:**
+```sh
+curl -i "http://see.com/experiments/2/stats/timeline/2017-01-10T00:00:00/2017-01-20T00:00:00/daily"
+```
+
+**Response:**
+```
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+  "data": {
+    "variations": [
       {
-        "experiment": {
-          // ...
-          "usr_variation": {
-            "id": 3,
+        id: 1,
+        name: 'control',
+        "timeline": [
+            {
+                time: 14224232323 // unix ts in ms
+                event_name: "participation",
+                count: 170
+            },
+            {
+                time: 14224232323 // unix ts in ms
+                event_name: "btn_click",
+                count: 15
+            },
             // ...
-          },
-        },
-        "metric_name": "participation",
-        "unique_count": "24"
+        ]
+      }, {
+        id: 2,
+        name: 'treatment',
+        "unique_counts": [
+            {
+                time: 14224232323 // unix ts in ms
+                event_name: "participation",
+                count: 180
+            },
+            {
+                time: 14224232323 // unix ts in ms
+                event_name: "btn_click",
+                count: 35
+            },
+            // ...
+        ]
       },
-      {
-        "experiment": {
-          "id": 2,
-          // ...
-          "usr_variation": {
-            "id": 0,
-            // ...
-          },
-        },
-        "metric_name": "srp_card_cta_click",
-        "unique_count": "1"
-      }
+      // ...
     ]
   }
 }

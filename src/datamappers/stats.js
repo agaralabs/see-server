@@ -33,4 +33,42 @@ Stats.prototype.fetchEventCounts = function (exp_id, version_id, vrtn_id) {
     });
 };
 
+Stats.prototype.fetchEventTimeline = function (exp_id, version_id, vrtn_id, from, to, granularity) {
+    var that = this;
+
+    var granularity_dict = {
+        'hourly' : 'hour',
+        'daily'  : 'day',
+        'weekly' : 'week',
+        'monthly': 'month'
+    };
+
+    return co( function *() {
+        var sql = [
+            'select count(distinct uid) as ecount, event_name, date_trunc(\'' + granularity_dict[granularity] + '\', time) as date  from records',
+            'where experiment_id = $1 and experiment_version = $2 and variation_id = $3',
+            'and TIMESTAMPTZ_CMP(records.time, $4) >= 0  and TIMESTAMPTZ_CMP(records.time, $5) <= 0',
+            'group by date_trunc(\'' + granularity_dict[granularity] + '\', time), event_name;'
+        ].join(' ');
+
+        var result = yield that.pool.pquery(sql, [
+            exp_id,
+            version_id,
+            vrtn_id,
+            from.format('YYYY-MM-DD HH:mm:ssZ'),
+            to.format('YYYY-MM-DD HH:mm:ssZ')
+        ]);
+
+        var items = result.rows.map(function (row) {
+            return new models.TimelineItemT({
+                time      : Number(new Date(row.date)),
+                event_name: row.event_name,
+                count     : Number(row.ecount)
+            });
+        });
+
+        return items;
+    });
+};
+
 module.exports = Stats;

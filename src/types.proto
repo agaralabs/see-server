@@ -5,16 +5,23 @@ message MapT {
     string value = 2;
 }
 
+message TimelineItemT {
+    uint32 time       = 1;
+    string event_name = 2;
+    uint32 count      = 3;
+}
+
 message VariationT {
-    uint32   id                 = 1;
-    uint32   experiment_id      = 2;
-    string   name               = 3;
-    bool     is_control         = 4;
-    double   split_percent      = 5;
-    bool     is_deleted         = 6;
-    repeated MapT unique_counts = 7;
-    uint32   create_time        = 8;
-    uint32   update_time        = 9;
+    uint32   id                     =  1;
+    uint32   experiment_id          =  2;
+    string   name                   =  3;
+    bool     is_control             =  4;
+    double   split_percent          =  5;
+    bool     is_deleted             =  6;
+    repeated MapT unique_counts     =  7;
+    repeated TimelineItemT timeline =  8;
+    uint32   create_time            =  9;
+    uint32   update_time            = 10;
 }
 
 message ExperimentT {

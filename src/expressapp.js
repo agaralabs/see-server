@@ -2,6 +2,7 @@ var express   = require('express');
 var bp        = require('body-parser');
 var cp        = require('cookie-parser');
 var wrap      = require('co-express');
+var moment    = require('moment-timezone');
 var models    = require('./models');
 var container = require('./container');
 var app       = express();
@@ -424,6 +425,60 @@ app.get('/experiments/:experiment_id/stats/counts', wrap(function *(req, res, ne
             vrtn.id
         ).then(function (counts) {
             vrtn.unique_counts = counts;
+        });
+    });
+
+    yield tasks;
+
+    res.json({ data: { variations: experiment.variations } });
+}));
+
+app.get('/experiments/:experiment_id/stats/timeline/:from/:to/:granularity', wrap(function *(req, res, next) {
+    var experiment = yield container.get('experiments_datamapper').fetchById(req.params.experiment_id);
+
+    if (!experiment) {
+        return next();
+    }
+
+    if (experiment.is_deleted) {
+        return next();
+    }
+
+    experiment.variations = yield container.get('variations_datamapper').fetchByExperimentId(experiment.id);
+
+    var from;
+    var to;
+    try {
+        from = moment(req.params.from);
+        to = moment(req.params.to);
+    } catch(e) {
+        res.status(400);
+        res.json({
+            err_code: 'BAD_DATA',
+            err_msg : 'Invalid from or to date'
+        });
+        return;
+    }
+
+    if (to.unix() < from.unix()) {
+        res.status(400);
+        res.json({
+            err_code: 'BAD_DATA',
+            err_msg : 'To date cannot be less than from date'
+        });
+        return;
+    }
+
+    var tasks = experiment.variations.map(function (vrtn) {
+        return container.get('stats').fetchEventTimeline(
+            experiment.id,
+            req.query.version ? req.query.version : experiment.version,
+            vrtn.id,
+            moment(req.params.from),
+            moment(req.params.to),
+            req.params.granularity
+        ).then(function (items) {
+            vrtn.timeline = items;
         });
     });
 
