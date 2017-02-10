@@ -77,7 +77,7 @@ function init() {
             '--steps Type=Spark,\\',
             'Name="SEE-Spark",\\',
             'ActionOnFailure=CONTINUE,\\',
-            'Args=[--class,com.ramnique.projects.Task,--deploy-mode,cluster,--master,yarn,s3://see-tracker-data/seefinal.jar,s3a://see-tracker-data/nginx,s3a://see-tracker-data/csv/' + uid + ',' + from.format() + ',' + to.format() + ']'
+            'Args=[--class,com.ramnique.projects.Task,--deploy-mode,cluster,--master,yarn,s3://see-tracker-data/see-final-2.jar,s3a://see-tracker-data/nginx,s3a://see-tracker-data/csv/' + uid + ',' + from.format() + ',' + to.format() + ']'
         ].join('\n');
         result = yield shellex(cmd);
 
