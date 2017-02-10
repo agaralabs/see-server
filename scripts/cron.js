@@ -3,7 +3,6 @@ var moment  = require('moment-timezone');
 var shell   = require('exec-sh');
 var co      = require('co');
 var cosleep = require('co-sleep');
-var uuid    = require('uuid');
 
 function tlog() {
     console.log();
@@ -42,7 +41,8 @@ function init() {
     return co(function *() {
         var from, to, result, uid, cmd;
 
-        uid = uuid.v4();
+        var now = moment();
+        var uid = now.format('YYYY/MM/DD/HH_mm_ss');
         tlog("> Task ID: ", uid);
 
         // If a from date is passed, use that, othwerwise
