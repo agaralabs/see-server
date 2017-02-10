@@ -69,6 +69,7 @@ function init() {
             '--instance-type m4.xlarge \\',
             '--instance-count 3 \\',
             '--auto-terminate \\',
+            '--log-uri s3://see-tracker-data/emr-logs/ \\',
             '--use-default-roles \\',
             '--name see-nginx-to-csv \\',
             '--applications Name=Spark \\',

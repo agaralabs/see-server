@@ -131,37 +131,42 @@ public class Task
                 return isInBetween;
             })
             .flatMap((line) -> {
-                Gson gson    = new Gson();
-                Event parsed = gson.fromJson(line, Event.class);
- 
-                final List<NameValuePair> params = URLEncodedUtils.parse(parsed.path.substring(7), StandardCharsets.UTF_8);
-                HashMap<String, String> paramMap = new HashMap<String, String>();
-
-                for (final NameValuePair nv: params) {
-                    paramMap.put(nv.getName(), nv.getValue());
-                }
-
-                parsed.uid               = paramMap.get("uid");
-                parsed.event_name        = paramMap.get("event");
-                final List<String> parts = Arrays.asList(paramMap.get("alloc").split(","));
-
                 ArrayList<String> records = new ArrayList<String>();
+                Gson gson    = new Gson();
 
-                for (final String exp: parts) {
-                    try {
-                        final List<String> segments = Arrays.asList(exp.split(":"));
-                        Event ev                    = new Event(parsed);
-                        ev.experiment_id            = Integer.parseInt(segments.get(0));
-                        ev.experiment_version       = Integer.parseInt(segments.get(1));
-                        ev.variation_id             = Integer.parseInt(segments.get(2));
-                        records.add(ev.toCSVString());
-                    } catch(NumberFormatException e) {
-                        System.out.println("## ERROR in path: " + parsed.path);
-                        continue;
+                try {
+                    Event parsed = gson.fromJson(line, Event.class);
+
+                    final List<NameValuePair> params = URLEncodedUtils.parse(parsed.path.substring(7), StandardCharsets.UTF_8);
+                    HashMap<String, String> paramMap = new HashMap<String, String>();
+
+                    for (final NameValuePair nv: params) {
+                        paramMap.put(nv.getName(), nv.getValue());
                     }
-                }
 
-                return records.iterator();
+                    parsed.uid               = paramMap.get("uid");
+                    parsed.event_name        = paramMap.get("event");
+                    final List<String> parts = Arrays.asList(paramMap.get("alloc").split(","));
+
+                    for (final String exp: parts) {
+                        try {
+                            final List<String> segments = Arrays.asList(exp.split(":"));
+                            Event ev                    = new Event(parsed);
+                            ev.experiment_id            = Integer.parseInt(segments.get(0));
+                            ev.experiment_version       = Integer.parseInt(segments.get(1));
+                            ev.variation_id             = Integer.parseInt(segments.get(2));
+                            records.add(ev.toCSVString());
+                        } catch(NumberFormatException e) {
+                            System.out.println("## ERROR in path: " + parsed.path);
+                            continue;
+                        }
+                    }
+                } catch(Exception e) {
+                    System.out.println("## ERROR in line: " + line);
+                    System.out.println(e.getMessage());
+                } finally {
+                    return records.iterator();
+                }
             });
 
         csvLines.saveAsTextFile(args[1]);
