@@ -45,11 +45,13 @@ Stats.prototype.fetchEventTimeline = function (exp_id, version_id, vrtn_id, from
 
     return co( function *() {
         var sql = [
-            'select count(distinct uid) as ecount, event_name, date_trunc(\'' + granularity_dict[granularity] + '\', time) as date  from records',
+            'select count(distinct uid) as ecount, event_name,',
+            'date_trunc(\'' + granularity_dict[granularity] + '\', time AT TIME ZONE \'Asia/Kolkata\') as date',
+            'from records',
             'where experiment_id = $1 and experiment_version = $2 and variation_id = $3',
             'and TIMESTAMPTZ_CMP(records.time, $4) >= 0  and TIMESTAMPTZ_CMP(records.time, $5) <= 0',
             'and agent not in (select distinct agent from bad_agents)',
-            'group by date_trunc(\'' + granularity_dict[granularity] + '\', time), event_name;'
+            'group by date_trunc(\'' + granularity_dict[granularity] + '\', time AT TIME ZONE \'Asia/Kolkata\'), event_name;'
         ].join(' ');
 
         var result = yield that.pool.pquery(sql, [
