@@ -9,7 +9,6 @@ var app       = express();
 
 app.use(bp.json());
 app.use(cp());
-/*
 app.use(function(req, res, next) {
  res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
@@ -23,7 +22,6 @@ app.use(function(req, res, next) {
       next();
     }
 });
-*/
 
 app.get('/experiments', wrap(function* (req, res) {
     var experiments = yield container.get('experiments_datamapper').fetchAll();

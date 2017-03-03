@@ -49,7 +49,7 @@ ExperimentsDm.prototype.insert = function (experiment) {
         var result = yield that.pool.pquery(sql, [
             experiment.name,
             experiment.exposure_percent,
-            false,
+            experiment.is_active,
             1,
             experiment.metric_name
         ]);
