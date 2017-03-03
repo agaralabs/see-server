@@ -1,4 +1,4 @@
-package com.ramnique.projects;
+package com.agaralabs.see;
 
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.JavaRDD;

@@ -1,4 +1,5 @@
-var pg      = require('./pg');
+var config  = require('./config');
+var pg      = require('./postgres');
 var moment  = require('moment-timezone');
 var shell   = require('exec-sh');
 var co      = require('co');
@@ -39,7 +40,7 @@ init()
 
 function init() {
     return co(function *() {
-        var from, to, result, uid, cmd;
+        var from, to, result, cmd;
 
         var now = moment();
         var uid = now.format('YYYY/MM/DD/HH_mm_ss');
