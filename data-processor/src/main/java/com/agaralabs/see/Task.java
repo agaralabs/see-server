@@ -172,5 +172,6 @@ public class Task
         csvLines.saveAsTextFile(args[1]);
 
         System.out.println( "done" );
+        sc.stop();
     }
 }
