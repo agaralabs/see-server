@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en-IN">
+<head>
+    <script type="text/javascript">window._app_timings = {'domLoadStart': Date.now()};</script>
+    <!-- Browsers Only -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>SEE Client</title>
+
+    <!-- CSS -->
+    <% for (var i = 0; i < htmlWebpackPlugin.files.css.length; i++) { %>
+        <link rel="stylesheet" type="text/css" href="<%= htmlWebpackPlugin.files.css[i] %>">
+    <% } %>
+
+    <!-- DNS Prefetching -->
+    <link rel="dns-prefetch" href="//see.stayzilla.com">
+</head>
+
+<body>
+    <div id="app-root"></div>
+    <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
+        <script type="text/javascript" src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+    <% } %>
+    <script type="text/javascript">window._sz_app_timings.domLoadEnd = Date.now();</script>
+</body>
+</html>

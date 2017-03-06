@@ -1,0 +1,16 @@
+.page-experiment {
+    .experiment-details {
+        .item {
+            display: flex;
+            padding: 10px;
+
+            &__name {
+                width: 150px;
+            }
+
+            &:not(:last-of-type) {
+                border-bottom: 1px solid $primary-grey;
+            }
+        }
+    }
+}

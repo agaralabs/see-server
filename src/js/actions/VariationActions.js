@@ -1,0 +1,114 @@
+import {batchActions} from 'redux-batched-actions';
+import ActionConstants from '../ActionConstants';
+import {VariationModel} from '../models';
+import {VariationApi} from '../apis';
+
+/**
+ * Action creator for updating the Variation API state
+ *
+ * @private
+ * @param {Boolean} isFetching
+ * @param {?Array} errors
+ *
+ * @return {Object}
+ */
+function _updateVariationApiState(isFetching, errors = null) {
+    return {
+        type: ActionConstants.UPDATE_VARIATION_API_STATUS,
+        isFetching,
+        errors
+    };
+}
+
+/**
+ * Action creator for updating the variation
+ *
+ * @private
+ * @param {Variation} variation
+ *
+ * @return {Object}
+ */
+function _updateVariation(variation) {
+    return {
+        type: ActionConstants.UPDATE_VARIATION,
+        variation
+    };
+}
+
+
+/**
+ * Action creator for removing variation from the store
+ *
+ * @param  {Number} variationId
+ *
+ * @return {Object}
+ */
+function _removeVariation(variationId) {
+    return {
+        type: ActionConstants.DELETE_VARIATION,
+        variationId
+    };
+}
+
+
+/**
+ * Action creator for fetching all variations of an experiment
+ *
+ * @param {Number} expId
+ * @return {Thunk}
+ */
+export function fetchVariationsByExpId(expId) {
+    return (dispatch) => {
+        dispatch(_updateVariationApiState(true));
+
+        return VariationApi.getAllByExperimentId(expId)
+            .then(res => {
+                const actions = res.data.variations.map(v => {
+                    return _updateVariation(new VariationModel(v));
+                });
+
+                actions.push(_updateVariationApiState(false));
+
+                dispatch(batchActions(actions));
+            })
+            .catch(err => {
+                console.log(err);
+                dispatch(_updateVariationApiState(false, [err]));
+            });
+    };
+}
+
+
+/**
+ * Action creator for deleting a variation
+ *
+ * @param  {Number} expId
+ * @param  {Number} varId
+ *
+ * @return {Thunk}
+ */
+export function deleteVariation(expId, varId) {
+    return (dispatch) => {
+        dispatch(_updateVariationApiState(true));
+
+        return VariationApi.deleteVariation(expId, varId)
+            .then(res => {
+                if (res.error) {
+                    dispatch(_updateVariationApiState(false, [res.error]));
+
+                    return;
+                }
+
+                const actions = [
+                    _removeVariation(varId),
+                    _updateVariationApiState(false)
+                ];
+
+                dispatch(batchActions(actions));
+            })
+            .catch(err => {
+                console.log(err);
+                dispatch(_updateVariationApiState(false, [err]));
+            });
+    };
+}
