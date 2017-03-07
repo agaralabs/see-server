@@ -1,6 +1,6 @@
-# Website
+# Sieve Client Dashboard
 
-This is the codebase of SEE client app. Below is the installation guide which will help us to setup this codebase on our local machine.
+This is the codebase of Sieve client app. Below is the installation guide which will help us to setup this codebase on our local machine.
 
 
 ### System Requirements
@@ -8,7 +8,6 @@ This is the codebase of SEE client app. Below is the installation guide which wi
 - Node (v6.x.x with NPM 3.x.x)
 - Ruby (v2.x.x)
 - Git
-- fontforge [Link] [font-forge]
 
 We will move to the next steps after having these above list of dependencies installed & confirming that they are correctly running on our machine.
 
@@ -27,37 +26,37 @@ git clone <OUR_REPOSITORY_URL>
 
 After we have forked & downloaded the code locally, we will install the npm modules
 ```sh
-$ cd see-client
+$ cd sieve-client
 $ npm i
 ```
 ### Building the code
 We are following the distribution based build system, where every changes made to the source files, generates a final deployable asset files inside the `dist/` folder. Thus, the `dist/` folder can act as the root for the web server which will serve the entire web app.
 
-To create a development version of compiled js & css files from the `src/`, we will run the following commands in order
+To create a development version of compiled js & css files from the `src/`, we will run the following command
 ```sh
 npm run build
 ```
 
-The default environment is `development`. We can create the build for different environments by passing the `process.env.NODE_ENV` values to the above commands. For eg, to create a build for `production` environment, we will run the following commands:
+The default environment is `development`. We can create the build for different environments by passing the `process.env.NODE_ENV` values to the above commands. For eg, to create a build for `production` environment, we will run the following command:
 ```sh
 NODE_ENV=production npm run build
 ```
 
-While working on the code, we would want to keep auto compiling the code on every change made to source files. For that to happen, will be build the code under `watch` mode. The below 2 commands have to be runned in 2 separate shell window since watch mode doesn't kill the ongoing process
+While working on the code, we would want to keep auto compiling the code on every change made to source files. For that to happen, will be build the code under `watch` mode
 ```sh
 npm run build:watch
 ```
 
 ### Setup NGINX server block
-We will create a new file (if not already present) called `see.conf` & copy the below server block code for seeclient.io & paste/replace it in the see.conf file. The see.conf file should be either in `conf.d/` or in `servers/` folder where Nginx is installed
+We will create a new file (if not already present) called `sieve.conf` & copy the below server block code for sieve.io & paste/replace it in the sieve.conf file. The sieve.conf file should be either in `conf.d/` or in `servers/` folder where Nginx is installed
 
 ```sh
-## Nginx config for seeclient.io (local dev site for stayzilla's website)
+## Nginx config for sieve.io (local dev site for sieve's client application)
 ## our http server at port 80
 
 server {
     listen      80;
-    server_name  www.seeclient.io seeclient.io;
+    server_name  www.sieve.io sieve.io;
 
     ## Gzip Settings
     gzip on;
@@ -68,13 +67,13 @@ server {
     gzip_types text/plain text/css application/json application/javascript application/x-javascript text/javascript;
 
 
-    ## Path where the desktop code resides
-    root <SEE_CLIENT_CODE>/dist;
+    ## Path where the sieve-client code resides
+    root <SIEVE_CLIENT_CODE>/dist;
 
 
     ## Log Files
-    access_log /var/log/nginx/sz_io_access.log;
-    error_log /var/log/nginx/sz_io_error.log;
+    access_log /var/log/nginx/sieve_io_access.log;
+    error_log /var/log/nginx/sieve_io_error.log;
     error_page  404              /404.html;
     location = /404.html {
         root   /usr/share/nginx/html;
@@ -94,12 +93,6 @@ server {
     }
 
 
-    ## To mock the CDN setup on local as it is on dev/preprod/prod environment
-    location ~ ^/desktop/(.*) {
-        rewrite ^/desktop/(.*) /$1?$args;
-    }
-
-
     location ~* \.(js|css|png|jpg|jpeg|gif|ico)*$ {
         expires max;
         add_header Cache-Control public;
@@ -110,23 +103,23 @@ server {
     }
 }
 ```
-We also need to replace `<SZ_WEB_APP_CODE>` in the _see.conf_ file with the absolute path of our code folder.
+We also need to replace `<SIEVE_CLIENT_CODE>` in the _sieve.conf_ file with the absolute path of our code folder.
 ***Example:***
 ```
-root /Users/jigar/Sites/website/dist
+root /Users/jigar/Sites/sieve-client/dist
 ```
 Once done, we will save this file & we will `restart` the Nginx. Also we will modify our `/etc/hosts` file by adding the following entry to it
 ```
 255.255.255.255 broadcasthost // Lines already present
 ::1             localhost // Lines already present
-127.0.0.1       seeclient.io // You need to add this line
-127.0.0.1       www.seeclient.io // You need to add this line
+127.0.0.1       sieve.io // You need to add this line
+127.0.0.1       www.sieve.io // You need to add this line
 ```
 
-After making these changes, we should be able to access <http://seeclient.io> & see a running version of our site
+After making these changes, we should be able to access <http://sieve.io> & see a running version of our site
 
 ### Tests
-We use [Jest](https://facebook.github.io/jest "Jest") for testing our reducers, actionCreators & models. Below command will run all the test suites
+We use [Jest](https://facebook.github.io/jest "Jest") for testing our reducers, actions & models. Below command will run all the test suites
 ```sh
 npm run test
 ```
@@ -143,5 +136,3 @@ $ npm run lint
 ### License
 
 MIT
-
-[font-forge]: <https://fontforge.github.io/en-US/>

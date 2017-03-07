@@ -10,7 +10,7 @@ export default function () {
                         to="/"
                         className="nav-item header__title"
                     >
-                        SEE
+                        Sieve
                     </Link>
                 </div>
             </nav>

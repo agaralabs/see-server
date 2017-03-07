@@ -1,7 +1,7 @@
 {
-  "name": "see-client",
+  "name": "sieve-client",
   "version": "1.0.0",
-  "description": "Client application for SEE",
+  "description": "Client dashboard application for Sieve",
   "main": "index.js",
   "dependencies": {
     "bulma": "^0.3.2",
@@ -48,7 +48,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jigarjain/see-client.git"
+    "url": "git+https://github.com/agaralabs/sieve-client.git"
   },
   "keywords": [
     "ab",
@@ -58,7 +58,7 @@
   "author": "Jigar Jain <jjain91@gmail.com> (http://jigarjain.com)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/jigarjain/see-client/issues"
+    "url": "https://github.com/agaralabs/sieve-client/issues"
   },
-  "homepage": "https://github.com/jigarjain/see-client#readme"
+  "homepage": "https://github.com/agaralabs/sieve-client#readme"
 }
