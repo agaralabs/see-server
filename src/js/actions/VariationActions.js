@@ -1,4 +1,5 @@
 import {batchActions} from 'redux-batched-actions';
+import objectClean from 'object-clean';
 import ActionConstants from '../ActionConstants';
 import {VariationModel} from '../models';
 import {VariationApi} from '../apis';
@@ -112,3 +113,82 @@ export function deleteVariation(expId, varId) {
             });
     };
 }
+
+
+/**
+ * Action creator for creating a new variation
+ *
+ * @param  {Number} experimentId
+ * @param  {Variation} variation
+ *
+ * @return {Thunk}
+ */
+export function createVariation(experimentId, variation) {
+    return (dispatch) => {
+        dispatch(_updateVariationApiState(true));
+
+        const params = {
+            variation: objectClean(VariationModel.transformForApi(variation))
+        };
+
+        return VariationApi.createVariation(experimentId, params)
+            .then(res => {
+                if (res.error) {
+                    dispatch(_updateVariationApiState(false, [res.error]));
+
+                    return;
+                }
+
+                const actions = [
+                    _updateVariation(new VariationModel(res.data.variation)),
+                    _updateVariationApiState(false)
+                ];
+
+                dispatch(batchActions(actions));
+            })
+            .catch(err => {
+                console.log(err);
+                dispatch(_updateVariationApiState(false, [err]));
+            });
+    };
+}
+
+
+/**
+ * Action creator for updating a variation
+ *
+ * @param  {Number} experimentId
+ * @param  {Variation} variation
+ *
+ * @return {Thunk}
+ */
+export function updateVariation(experimentId, variation) {
+    return (dispatch) => {
+        dispatch(_updateVariationApiState(true));
+
+        const params = {
+            variation: VariationModel.transformForApi(variation)
+        };
+
+        return VariationApi.updateVariation(experimentId, variation.id, params)
+            .then(res => {
+                if (res.error) {
+                    dispatch(_updateVariationApiState(false, [res.error]));
+
+                    return;
+                }
+
+                const actions = [
+                    _updateVariation(new VariationModel(res.data.variation)),
+                    _updateVariationApiState(false)
+                ];
+
+                dispatch(batchActions(actions));
+            })
+            .catch(err => {
+                console.log(err);
+                dispatch(_updateVariationApiState(false, [err]));
+            });
+    };
+}
+

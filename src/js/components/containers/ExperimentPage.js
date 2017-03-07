@@ -2,8 +2,10 @@ import React, {PureComponent} from 'react';
 import {bindActionCreators} from 'redux';
 import {connect} from 'react-redux';
 import {ExperimentActions, VariationActions} from '../../actions';
+import {VariationModel} from '../../models';
 import {Modal} from '../modules/base';
 import VariationsList from '../modules/VariationsList';
+import Helpers from '../../utils/helpers';
 
 // import {Link} from '../../utils/router';
 
@@ -12,37 +14,45 @@ class ExperimentPage extends PureComponent {
         super(props);
 
         this.state = {
-            activeTab: 'details',
-            variationToDelete: null,
-            shouldConfirmVariationDeletion: false
+            activeTab: 'variations',
+            selectedVariation: null,
+            isVarEditModeOn: false,
+            shouldConfirmVarDeletion: false
         };
 
 
-        this.onDeleteVariation = this.onDeleteVariation.bind(this);
+        this.onVariationDelete = this.onVariationDelete.bind(this);
         this.onVariationModalClose = this.onVariationModalClose.bind(this);
         this.deleteVariation = this.deleteVariation.bind(this);
         this.onTabChange = this.onTabChange.bind(this);
+        this.onVariationAddEdit = this.onVariationAddEdit.bind(this);
+        this.onVariationInfoChange = this.onVariationInfoChange.bind(this);
+        this.onVariationSave = this.onVariationSave.bind(this);
+        this.onCancelVariationAddEdit = this.onCancelVariationAddEdit.bind(this);
     }
 
 
     // Show confirmation window & store the variation id in state
-    onDeleteVariation(e) {
+    onVariationDelete(e) {
         e.preventDefault();
+        const varId = Number(e.target.getAttribute('data-variationid'));
 
         this.setState({
-            variationToDelete: Number(e.target.getAttribute('data-variationid')),
-            shouldConfirmVariationDeletion: true
+            selectedVariation: {
+                ...this.props.variations.find(v => v.id === varId)
+            },
+            shouldConfirmVarDeletion: true
         });
     }
 
 
     // Actually deletes the variation by making an API call
     deleteVariation() {
-        this.props.actions.deleteVariation(this.props.experimentId, this.state.variationToDelete);
+        this.props.actions.deleteVariation(this.props.experimentId, this.state.selectedVariation.id);
 
         this.setState({
-            variationToDelete: null,
-            shouldConfirmVariationDeletion: false
+            selectedVariation: null,
+            shouldConfirmVarDeletion: false
         });
     }
 
@@ -51,8 +61,8 @@ class ExperimentPage extends PureComponent {
     // which was set on state
     onVariationModalClose() {
         this.setState({
-            variationToDelete: null,
-            shouldConfirmVariationDeletion: false
+            selectedVariation: null,
+            shouldConfirmVarDeletion: false
         });
     }
 
@@ -64,38 +74,109 @@ class ExperimentPage extends PureComponent {
     }
 
 
-    renderVariationDeletionDialog() {
-        if (!this.state.shouldConfirmVariationDeletion) {
-            return null;
+    onVariationAddEdit(e) {
+        const action = e.target.getAttribute('data-action');
+
+        let selectedVariation;
+        let varId;
+
+        switch (action) {
+            case 'create':
+                selectedVariation = new VariationModel();
+                break;
+
+            case 'update':
+                varId = Number(e.target.getAttribute('data-variationid'));
+
+                selectedVariation = {
+                    ...this.props.variations.find(v => v.id === varId)
+                };
+
+                break;
+
+            default:
+                break;
         }
 
-        const variation = this.props.variations.find(v => v.id === this.state.variationToDelete);
+        this.setState({
+            selectedVariation,
+            isVarEditModeOn: true
+        });
+    }
 
-        return (
-            <Modal
-                onClose={this.onVariationModalClose}
-            >
-                <div className="dialog">
-                    <div className="dialog__content">
-                        Are you sure you want to delete variation <b>{variation.name}</b>?
+
+    onCancelVariationAddEdit(e) {
+        this.setState({
+            selectedVariation: null,
+            isVarEditModeOn: false
+        });
+    }
+
+
+    onVariationInfoChange(e) {
+        const selectedVariation = {...this.state.selectedVariation};
+        const key = e.target.getAttribute('data-keyname');
+        const value = e.target.value.trim();
+
+        switch (key) {
+            case 'splitPercent':
+                selectedVariation[key] = Number(Helpers.getNumberStr(value.slice(0, 3)));
+                break;
+
+            default:
+                selectedVariation[key] = value;
+        }
+
+        this.setState({
+            selectedVariation
+        });
+    }
+
+
+    onVariationSave(e) {
+        const variation = {...this.state.selectedVariation};
+
+        if (variation.id) {
+            this.props.actions.updateVariation(this.props.experimentId, variation);
+        } else {
+            this.props.actions.createVariation(this.props.experimentId, variation);
+        }
+
+        this.setState({
+            selectedVariation: null,
+            isVarEditModeOn: false
+        });
+    }
+
+
+    renderExperimentError() {
+        const errorType = VariationModel.getExperimentErrorType(this.props.variations);
+
+        switch (errorType) {
+            case 'NO_CONTROL':
+                return (
+                    <div className="notification is-warning">
+                        Please add atleast <b>2 variations</b>(including control) to activate the experiment
                     </div>
-                    <div className="dialog__action">
-                        <button
-                            onClick={this.deleteVariation}
-                            className="button is-primary dialog__action__item"
-                        >
-                            Yes
-                        </button>
-                        <button
-                            onClick={this.onVariationModalClose}
-                            className="button is-danger dialog__action__item"
-                        >
-                            Cancel
-                        </button>
+                );
+
+            case 'NO_VARIATION':
+                return (
+                    <div className="notification is-warning">
+                        Please add atleast <b>1 more variation</b> to activate the experiment
                     </div>
-                </div>
-            </Modal>
-        );
+                );
+
+            case 'INCORRECT_SPLIT':
+                return (
+                    <div className="notification is-warning">
+                        Please check the split percentage for all the variations. The total should be <b>100</b> to activate the experiment
+                    </div>
+                );
+
+            default:
+                return null;
+        }
     }
 
 
@@ -194,8 +275,49 @@ class ExperimentPage extends PureComponent {
             <VariationsList
                 variations={this.props.variations}
                 experimentId={this.props.experimentId}
-                onDeleteVariation={this.onDeleteVariation}
+                selectedVariation={this.state.selectedVariation}
+                isVarEditModeOn={this.state.isVarEditModeOn}
+                onVariationAddEdit={this.onVariationAddEdit}
+                onVariationDelete={this.onVariationDelete}
+                onVariationInfoChange={this.onVariationInfoChange}
+                onVariationSave={this.onVariationSave}
+                onCancelVariationAddEdit={this.onCancelVariationAddEdit}
             />
+        );
+    }
+
+
+    renderVariationDeletionDialog() {
+        if (!this.state.shouldConfirmVarDeletion) {
+            return null;
+        }
+
+        const variation = this.props.variations.find(v => v.id === this.state.selectedVariation.id);
+
+        return (
+            <Modal
+                onClose={this.onVariationModalClose}
+            >
+                <div className="dialog">
+                    <div className="dialog__content">
+                        Are you sure you want to delete variation <b>{variation.name}</b>?
+                    </div>
+                    <div className="dialog__action">
+                        <button
+                            onClick={this.deleteVariation}
+                            className="button is-primary dialog__action__item"
+                        >
+                            Yes
+                        </button>
+                        <button
+                            onClick={this.onVariationModalClose}
+                            className="button is-danger dialog__action__item"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </Modal>
         );
     }
 
@@ -223,6 +345,7 @@ class ExperimentPage extends PureComponent {
         if (experiment) {
             return (
                 <div className="container page page-experiment">
+                    {this.renderExperimentError()}
                     <h1 className="title is-3">{experiment.name}</h1>
                     {this.renderTabs()}
                     {this.renderTabContent()}

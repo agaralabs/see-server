@@ -48,17 +48,18 @@ export default class Experiment {
          */
         this.updateTime = exp.update_time ? new Date(exp.update_time) : null;
     }
-}
 
-Experiment.transformForApi = (exp) => {
-    return {
-        id: exp.id,
-        name: exp.name,
-        version: exp.version,
-        exposure_percent: exp.exposure,
-        is_active: exp.isActive,
-        metric_name: exp.metricName,
-        create_time: exp.createTime,
-        update_time: exp.updateTime
-    };
-};
+
+    static transformForApi(exp) {
+        return {
+            id: exp.id,
+            name: exp.name,
+            version: exp.version,
+            exposure_percent: exp.exposure,
+            is_active: exp.isActive,
+            metric_name: exp.metricName,
+            create_time: exp.createTime,
+            update_time: exp.updateTime
+        };
+    }
+}
