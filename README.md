@@ -1,7 +1,7 @@
-# Stayzilla Experimentation Engine Server
+# Sieve Server
 
-This is the server component of SEE. It allocates experiments
-and provides a REST-ful API to manage experiments.
+This is the server component of Sieve A/B testing framework. 
+It allocates experiments and provides a REST-ful API to manage experiments.
 
 ## Requirements
 

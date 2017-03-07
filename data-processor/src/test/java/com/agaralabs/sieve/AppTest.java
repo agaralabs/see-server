@@ -1,4 +1,4 @@
-package com.agaralabs.see;
+package com.agaralabs.sieve;
 
 import junit.framework.Test;
 import junit.framework.TestCase;

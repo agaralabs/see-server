@@ -1,5 +1,5 @@
 {
-  "name": "szsee",
+  "name": "sieve-server",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -8,11 +8,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/agaralabs/see-server.git"
+    "url": "git+ssh://git@github.com/agaralabs/sieve-server.git"
   },
   "author": "",
   "license": "ISC",
-  "homepage": "https://github.com/agaralabs/see-server#readme",
+  "homepage": "https://github.com/agaralabs/sieve-server#readme",
   "dependencies": {
     "bluebird": "^3.4.6",
     "body-parser": "^1.15.2",

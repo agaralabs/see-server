@@ -1,6 +1,6 @@
-# SEE data processor
+# Sieve data processor
 
-Scripts that process SEE tracker logs and put them into Amazon Redshift.
+Scripts that process Sieve tracker logs and put them into Amazon Redshift.
 
 ## Updating EMR Task
 
@@ -26,7 +26,7 @@ Install a shell script like this in crontab:
 ```sh
 #!/bin/bash
 mkdir -p "$HOME/tmp"
-PIDFILE="$HOME/tmp/see-mgmt.pid"
+PIDFILE="$HOME/tmp/sieve-mgmt.pid"
 
 if [ -e "${PIDFILE}" ] && (ps -u $(whoami) -opid= |
                            grep -P "^\s*$(cat ${PIDFILE})$" &> /dev/null); then
@@ -34,7 +34,7 @@ if [ -e "${PIDFILE}" ] && (ps -u $(whoami) -opid= |
   exit 99
 fi
 
-AWS_ACCESS_KEY=YOUR_ACCESS_KEY AWS_SECRET_KEY=YOUR_SECRET_KEY node scripts/cron.js >> see-mgmt.log &
+AWS_ACCESS_KEY=YOUR_ACCESS_KEY AWS_SECRET_KEY=YOUR_SECRET_KEY node scripts/cron.js >> sieve-mgmt.log &
 
 echo $! > "${PIDFILE}"
 chmod 644 "${PIDFILE}"

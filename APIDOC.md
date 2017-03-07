@@ -1,4 +1,4 @@
-# Stayzilla Experimentation Engine
+# Sieve
 ### Creating an experiment
 
 **Request:**
@@ -12,7 +12,7 @@ curl -i \
             "exposure_percent": 5.0
         }
     }' \
-    "http://see.com/experiments"
+    "http://sieve.com/experiments"
 ```
 
 **Response:**
@@ -44,7 +44,7 @@ Content-Type: application/json
 
 **Request:**
 ```sh
-curl -i "http://see.com/experiments"
+curl -i "http://sieve.com/experiments"
 ```
 
 **Response:**
@@ -68,7 +68,7 @@ Content-Type: application/json
 curl -i \
     -X DELETE \
     -H "Content-type: application/json" \
-    "http://see.com/experiments/7"
+    "http://sieve.com/experiments/7"
 ```
 
 **Response:**
@@ -115,7 +115,7 @@ curl -i \
             "metric_name": "pay_btn_click"
         }
     }' \
-    "http://see.com/experiments/7"
+    "http://sieve.com/experiments/7"
 ```
 
 **Response:**
@@ -157,7 +157,7 @@ curl -i \
             "split_percent": 50.0
         }
     }' \
-    "http://see.com/experiments/7/variations"
+    "http://sieve.com/experiments/7/variations"
 ```
 
 **Response:**
@@ -184,7 +184,7 @@ Content-Type: application/json
 
 **Request:**
 ```sh
-curl -i "http://see.com/experiments/7/variations"
+curl -i "http://sieve.com/experiments/7/variations"
 ```
 
 **Response:**
@@ -225,7 +225,7 @@ Content-Type: application/json
 curl -i \
     -X DELETE \
     -H "Content-type: application/json" \
-    "http://see.com/experiments/7/variations/6"
+    "http://sieve.com/experiments/7/variations/6"
 ```
 
 **Response:**
@@ -261,7 +261,7 @@ curl -i \
             "split_percent": 50.0
         }
     }' \
-    "http://see.com/experiments/7/variations/6"
+    "http://sieve.com/experiments/7/variations/6"
 ```
 
 **Response:**
@@ -288,7 +288,7 @@ Content-Type: application/json
 
 **Request:**
 ```sh
-curl -i -X POST "http://see.com/experiments/7/version"
+curl -i -X POST "http://sieve.com/experiments/7/version"
 ```
 
 **Response:**
@@ -307,7 +307,7 @@ Content-Type: application/json
 
 **Request:**
 ```sh
-curl -i "http://see.com/experiments/7/version"
+curl -i "http://sieve.com/experiments/7/version"
 ```
 
 **Response:**
@@ -330,7 +330,7 @@ Pass a request of the form: `/experiments/<experiment_id>/stats/counts`,
 
 **Request:**
 ```sh
-curl -i "http://see.com/experiments/2/stats/counts"
+curl -i "http://sieve.com/experiments/2/stats/counts"
 ```
 
 **Response:**
@@ -384,7 +384,7 @@ Pass a request of the form: `/experiments/<experiment_id>/stats/timeline/<from>/
 
 **Request:**
 ```sh
-curl -i "http://see.com/experiments/2/stats/timeline/2017-01-10T00:00:00/2017-01-20T00:00:00/daily"
+curl -i "http://sieve.com/experiments/2/stats/timeline/2017-01-10T00:00:00/2017-01-20T00:00:00/daily"
 ```
 
 **Response:**

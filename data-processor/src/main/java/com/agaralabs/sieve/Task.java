@@ -1,4 +1,4 @@
-package com.agaralabs.see;
+package com.agaralabs.sieve;
 
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.JavaRDD;
@@ -115,7 +115,7 @@ public class Task
         String input_path = String.join("/", path_parts);
         System.out.println("Getting files from: " + input_path);
 
-        SparkConf conf       = new SparkConf().setAppName("SEE - nginx parser");
+        SparkConf conf       = new SparkConf().setAppName("Sieve - nginx parser");
         JavaSparkContext sc  = new JavaSparkContext(conf);
 
         JavaRDD<String> infile = sc.textFile(input_path);
