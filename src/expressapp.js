@@ -5,6 +5,7 @@ var wrap      = require('co-express');
 var moment    = require('moment-timezone');
 var models    = require('./models');
 var container = require('./container');
+var config    = require('./config');
 var app       = express();
 
 app.use(bp.json());

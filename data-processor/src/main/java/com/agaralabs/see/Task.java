@@ -126,9 +126,7 @@ public class Task
                 Event ev  = gson.fromJson(line, Event.class);
 
                 ZonedDateTime candidate = ZonedDateTime.parse(ev.time).withZoneSameInstant(ZoneId.of("UTC"));
-                boolean isInBetween = !candidate.toLocalDateTime().isBefore(from.toLocalDateTime()) && !candidate.toLocalDateTime().isAfter(to.toLocalDateTime());
-                System.out.println(from + " / " + candidate + " / " + to + " = " + isInBetween);
-                return isInBetween;
+                return !candidate.toLocalDateTime().isBefore(from.toLocalDateTime()) && !candidate.toLocalDateTime().isAfter(to.toLocalDateTime());
             })
             .flatMap((line) -> {
                 ArrayList<String> records = new ArrayList<String>();

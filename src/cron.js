@@ -69,21 +69,22 @@ function init() {
             res = yield submitToEMR(uid, from, to);
         else
             res = yield submitToSpark(uid, from, to);
-        console.log(res);
-        process.exit();
 
         // Clear 
         yield pg.pquery('delete from records where time >= $1 AND time <= $2', [from.format('YYYY-MM-DD HH:mm:ss'), to.format('YYYY-MM-DD HH:mm:ss')]);
 
         // Reload data
-        yield pg.pquery([
-            "copy records from 's3://see-tracker-data/csv/" + uid + "/part'",
-            "region 'ap-southeast-1'",
-            "credentials 'aws_access_key_id=" + process.env.AWS_ACCESS_KEY + ";aws_secret_access_key=" + process.env.AWS_SECRET_KEY + "'",
-            "csv",
-            "dateformat 'auto'",
-            "timeformat 'auto';"
-        ].join("\n"), []);
+        if (config.postgres.host.indexOf('redshift.amazonaws.com') > 0) {
+            // Using redshift
+            yield pg.pquery([
+                "copy records from '" + config.spark.output_path + '/' + uid + "/part'",
+                config.spark.s3_region ? "region '" + config.spark.s3_region + "'" : "",
+                process.env.AWS_ACCESS_KEY ? "credentials 'aws_access_key_id=" + process.env.AWS_ACCESS_KEY + ";aws_secret_access_key=" + process.env.AWS_SECRET_KEY + "'" : "",
+                "csv",
+                "dateformat 'auto'",
+                "timeformat 'auto';"
+            ].join("\n"), []);
+        }
     });
 }
 
