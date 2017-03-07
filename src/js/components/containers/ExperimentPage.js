@@ -12,6 +12,7 @@ class ExperimentPage extends PureComponent {
         super(props);
 
         this.state = {
+            activeTab: 'details',
             variationToDelete: null,
             shouldConfirmVariationDeletion: false
         };
@@ -20,6 +21,7 @@ class ExperimentPage extends PureComponent {
         this.onDeleteVariation = this.onDeleteVariation.bind(this);
         this.onVariationModalClose = this.onVariationModalClose.bind(this);
         this.deleteVariation = this.deleteVariation.bind(this);
+        this.onTabChange = this.onTabChange.bind(this);
     }
 
 
@@ -51,6 +53,13 @@ class ExperimentPage extends PureComponent {
         this.setState({
             variationToDelete: null,
             shouldConfirmVariationDeletion: false
+        });
+    }
+
+
+    onTabChange(e) {
+        this.setState({
+            activeTab: e.currentTarget.getAttribute('data-type')
         });
     }
 
@@ -90,6 +99,107 @@ class ExperimentPage extends PureComponent {
     }
 
 
+    renderTabs() {
+        const tabs = [
+            {
+                type: 'details',
+                text: 'Details'
+            },
+            {
+                type: 'variations',
+                text: 'Variations'
+            },
+            {
+                type: 'reports',
+                text: 'Reports'
+            }
+        ];
+
+        return (
+            <div className="tabs is-boxed">
+                <ul>
+                    {
+                        tabs.map(t => {
+                            return (
+                                <li
+                                    key={t.type}
+                                    data-type={t.type}
+                                    onClick={this.onTabChange}
+                                    className={t.type === this.state.activeTab ? 'is-active' : null}
+                                >
+                                    <a>
+                                        <span>{t.text}</span>
+                                    </a>
+                                </li>
+                            );
+                        })
+                    }
+                </ul>
+            </div>
+        );
+    }
+
+
+    renderTabContent() {
+        switch (this.state.activeTab) {
+            case 'details':
+                return this.renderExpDetails();
+
+            case 'variations':
+                return this.renderExpVariations();
+
+            case 'reports':
+                return null;
+
+            default:
+                return null;
+        }
+    }
+
+
+    renderExpDetails() {
+        return (
+            <section className="experiment-details">
+                <div className="item">
+                    <div className="item__name">Id</div>
+                    <div className="item__value">{this.props.experiment.id}</div>
+                </div>
+                <div className="item">
+                    <div className="item__name">Version</div>
+                    <div className="item__value">{this.props.experiment.version}</div>
+                </div>
+                <div className="item">
+                    <div className="item__name">Status</div>
+                    <div className="item__value">{this.props.experiment.isActive ? 'Active' : 'Inactive'}</div>
+                </div>
+                <div className="item">
+                    <div className="item__name">Exposure</div>
+                    <div className="item__value">{this.props.experiment.exposure}%</div>
+                </div>
+                <div className="item">
+                    <div className="item__name">Metric name</div>
+                    <div className="item__value">{this.props.experiment.metricName}</div>
+                </div>
+                <div className="item">
+                    <div className="item__name">Created On</div>
+                    <div className="item__value">{this.props.experiment.createTime.toString()}</div>
+                </div>
+            </section>
+        );
+    }
+
+
+    renderExpVariations() {
+        return (
+            <VariationsList
+                variations={this.props.variations}
+                experimentId={this.props.experimentId}
+                onDeleteVariation={this.onDeleteVariation}
+            />
+        );
+    }
+
+
     render() {
         if (this.props.apiState.isFetching) {
             return (
@@ -114,38 +224,8 @@ class ExperimentPage extends PureComponent {
             return (
                 <div className="container page page-experiment">
                     <h1 className="title is-3">{experiment.name}</h1>
-
-                    <section className="experiment-details">
-                        <div className="item">
-                            <div className="item__name">Id</div>
-                            <div className="item__value">{experiment.id}</div>
-                        </div>
-                        <div className="item">
-                            <div className="item__name">Version</div>
-                            <div className="item__value">{experiment.version}</div>
-                        </div>
-                        <div className="item">
-                            <div className="item__name">Status</div>
-                            <div className="item__value">{experiment.isActive ? 'Active' : 'Inactive'}</div>
-                        </div>
-                        <div className="item">
-                            <div className="item__name">Exposure</div>
-                            <div className="item__value">{experiment.exposure}%</div>
-                        </div>
-                        <div className="item">
-                            <div className="item__name">Metric name</div>
-                            <div className="item__value">{experiment.metricName}</div>
-                        </div>
-                        <div className="item">
-                            <div className="item__name">Created On</div>
-                            <div className="item__value">{experiment.createTime.toString()}</div>
-                        </div>
-                    </section>
-                    <VariationsList
-                        variations={this.props.variations}
-                        experimentId={this.props.experimentId}
-                        onDeleteVariation={this.onDeleteVariation}
-                    />
+                    {this.renderTabs()}
+                    {this.renderTabContent()}
                     {this.renderVariationDeletionDialog()}
                 </div>
             );
