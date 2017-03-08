@@ -3,6 +3,7 @@ import {bindActionCreators} from 'redux';
 import {connect} from 'react-redux';
 import {ExperimentActions} from '../../actions';
 import {Link} from '../../utils/router';
+import Helpers from '../../utils/helpers';
 
 class DashboardPage extends Component {
     constructor(props) {
@@ -21,7 +22,7 @@ class DashboardPage extends Component {
                 <div className="is-clearfix">
                     <h1 className="title is-3 is-pulled-left">All Experiments</h1>
                     <Link
-                        to="/experiments/create"
+                        to="/experiments/add"
                         className="button is-primary is-outlined is-pulled-right"
                     >
                         Create new Experiment
@@ -36,6 +37,7 @@ class DashboardPage extends Component {
                             <th>Status</th>
                             <th>Exposure</th>
                             <th>Created On</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -47,9 +49,29 @@ class DashboardPage extends Component {
                                         <td>
                                             <Link to={`/experiments/${exp.id}`}>{exp.name}</Link>
                                         </td>
-                                        <td>{exp.isActive ? 'Active' : 'Inactive'}</td>
+                                        <td>{exp.isActive ? 'Running' : 'Paused'}</td>
                                         <td>{exp.exposure}%</td>
-                                        <td>{exp.createTime.toString()}</td>
+                                        <td>{Helpers.formatDate(exp.createTime)}</td>
+                                        <td>
+                                            <div className="control is-grouped">
+                                                <div className="control">
+                                                    <Link
+                                                        to={`/experiments/${exp.id}`}
+                                                        className="button is-small is-primary is-outlined"
+                                                    >
+                                                        View
+                                                    </Link>
+                                                </div>
+                                                <div className="control">
+                                                    <Link
+                                                        to={`/experiments/${exp.id}/update`}
+                                                        className="button is-small is-info is-outlined"
+                                                    >
+                                                        Edit
+                                                    </Link>
+                                                </div>
+                                            </div>
+                                        </td>
                                     </tr>
                                 );
                             })

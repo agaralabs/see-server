@@ -64,6 +64,13 @@ export function fetchAllExperiments() {
 }
 
 
+/**
+ * Action creator for creating a new experiment
+ *
+ * @param  {Experiment} experiment
+ *
+ * @return {Thunk}
+ */
 export function createExperiment(experiment) {
     return (dispatch) => {
         dispatch(_updateExperimentApiState(true));
@@ -74,12 +81,37 @@ export function createExperiment(experiment) {
 
         return ExperimentApi.createExperiment(postData)
             .then(res => {
-                if (res.error) {
-                    dispatch(_updateExperimentApiState(false, [res.error]));
+                const exp = new ExperimentModel(res.data.experiment);
+                const actions = [
+                    _updateExperimentApiState(false),
+                    _updateExperiment(exp)
+                ];
 
-                    return;
-                }
+                dispatch(batchActions(actions));
 
+                return exp.id;
+            })
+            .catch(err => {
+                console.log(err);
+                dispatch(_updateExperimentApiState(false, [err]));
+            });
+    };
+}
+
+
+/**
+ * Action creator for fetching an experiment by Id
+ *
+ * @param  {Number} expId
+ *
+ * @return {Thunk}
+ */
+export function getExperimentById(expId) {
+    return (dispatch) => {
+        dispatch(_updateExperimentApiState(true));
+
+        return ExperimentApi.getExperimentById(expId)
+            .then(res => {
                 const actions = [
                     _updateExperimentApiState(false),
                     _updateExperiment(new ExperimentModel(res.data.experiment))
@@ -95,21 +127,27 @@ export function createExperiment(experiment) {
 }
 
 
-export function getExperimentById(expId) {
+/**
+ * Action creator for updating an existing experiment
+ *
+ * @param  {Experiment} experiment
+ *
+ * @return {Thunk}
+ */
+export function updateExperiment(experiment) {
     return (dispatch) => {
         dispatch(_updateExperimentApiState(true));
 
-        return ExperimentApi.getExperimentById(expId)
+        const params = {
+            experiment: ExperimentModel.transformForApi(experiment)
+        };
+
+        return ExperimentApi.updateExperiment(experiment.id, params)
             .then(res => {
-                if (res.error) {
-                    dispatch(_updateExperimentApiState(false, [res.error]));
-
-                    return;
-                }
-
+                const exp = new ExperimentModel(res.data.experiment);
                 const actions = [
                     _updateExperimentApiState(false),
-                    _updateExperiment(new ExperimentModel(res.data.experiment))
+                    _updateExperiment(exp)
                 ];
 
                 dispatch(batchActions(actions));

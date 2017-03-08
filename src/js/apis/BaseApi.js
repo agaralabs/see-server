@@ -16,7 +16,11 @@ export default {
                 .query(params)
                 .end((err, res) => {
                     if (err) {
-                        return reject(err);
+                        return reject(err.response ? err.response.body : 'Unknown API error');
+                    }
+
+                    if (res.body.error) {
+                        return reject(res.body.error);
                     }
 
                     resolve(res.body);
@@ -39,7 +43,11 @@ export default {
                 .send(params)
                 .end((err, res) => {
                     if (err) {
-                        return reject(err);
+                        return reject(err.response ? err.response.body : 'Unknown API error');
+                    }
+
+                    if (res.body.error) {
+                        return reject(res.body.error);
                     }
 
                     resolve(res.body);
@@ -62,7 +70,11 @@ export default {
                 .send(params)
                 .end((err, res) => {
                     if (err) {
-                        return reject(err);
+                        return reject(err.response ? err.response.body : 'Unknown API error');
+                    }
+
+                    if (res.body.error) {
+                        return reject(res.body.error);
                     }
 
                     resolve(res.body);
@@ -85,7 +97,11 @@ export default {
                 .send(params)
                 .end((err, res) => {
                     if (err) {
-                        return reject(err);
+                        return reject(err.response ? err.response.body : 'Unknown API error');
+                    }
+
+                    if (res.body.error) {
+                        return reject(res.body.error);
                     }
 
                     resolve(res.body);

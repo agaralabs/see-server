@@ -94,12 +94,6 @@ export function deleteVariation(expId, varId) {
 
         return VariationApi.deleteVariation(expId, varId)
             .then(res => {
-                if (res.error) {
-                    dispatch(_updateVariationApiState(false, [res.error]));
-
-                    return;
-                }
-
                 const actions = [
                     _removeVariation(varId),
                     _updateVariationApiState(false)
@@ -133,12 +127,6 @@ export function createVariation(experimentId, variation) {
 
         return VariationApi.createVariation(experimentId, params)
             .then(res => {
-                if (res.error) {
-                    dispatch(_updateVariationApiState(false, [res.error]));
-
-                    return;
-                }
-
                 const actions = [
                     _updateVariation(new VariationModel(res.data.variation)),
                     _updateVariationApiState(false)
@@ -172,12 +160,6 @@ export function updateVariation(experimentId, variation) {
 
         return VariationApi.updateVariation(experimentId, variation.id, params)
             .then(res => {
-                if (res.error) {
-                    dispatch(_updateVariationApiState(false, [res.error]));
-
-                    return;
-                }
-
                 const actions = [
                     _updateVariation(new VariationModel(res.data.variation)),
                     _updateVariationApiState(false)

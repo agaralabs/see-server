@@ -15,5 +15,10 @@ export default {
 
     getExperimentById: (expId) => {
         return BaseApi.get(`${config.apiEndpoints.experimentBase}/${expId}`);
+    },
+
+
+    updateExperiment: (expId, params) => {
+        return BaseApi.put(`${config.apiEndpoints.experimentBase}/${expId}`, params);
     }
 };

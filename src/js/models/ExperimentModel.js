@@ -57,9 +57,7 @@ export default class Experiment {
             version: exp.version,
             exposure_percent: exp.exposure,
             is_active: exp.isActive,
-            metric_name: exp.metricName,
-            create_time: exp.createTime,
-            update_time: exp.updateTime
+            metric_name: exp.metricName
         };
     }
 }

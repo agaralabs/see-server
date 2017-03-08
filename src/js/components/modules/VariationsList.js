@@ -20,7 +20,7 @@ function getVariationViewMode(experimentId, variation, index, onVariationAddEdit
     if (variation.isControl) {
         deleteOption = null;
         typeTag = (
-            <span className="tag is-primary is-small">Control</span>
+            <span className="tag">Control</span>
         );
     }
 

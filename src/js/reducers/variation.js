@@ -32,6 +32,10 @@ export default (state = initialState, action) => {
             variations = state.variations.filter(v => v.id !== action.variation.id);
             variations.push(action.variation);
 
+            // Sorting to maintain the original order
+            variations = variations.sort((v1, v2) => v1.createTime - v2.createTime);
+
+
             return {
                 ...state,
                 variations
