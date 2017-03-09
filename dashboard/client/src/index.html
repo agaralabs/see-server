@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en-IN">
+<head>
+    <!-- Browsers Only -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Sieve Dashboard</title>
+
+    <!-- CSS -->
+    <% for (var i = 0; i < htmlWebpackPlugin.files.css.length; i++) { %>
+        <link rel="stylesheet" type="text/css" href="<%= htmlWebpackPlugin.files.css[i] %>">
+    <% } %>
+
+</head>
+
+<body>
+    <div id="app-root"></div>
+    <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
+        <script type="text/javascript" src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+    <% } %>
+</body>
+</html>
