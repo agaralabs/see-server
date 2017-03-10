@@ -457,13 +457,14 @@ app.get('/experiments/:experiment_id/stats/counts', wrap(function *(req, res, ne
 }));
 
 // Compares control and variation
+// For formulas https://en.wikipedia.org/wiki/Statistical_hypothesis_testing
 function addTestStatistics(variations) {
   for (var i = 0; i < variations.length; i++) {
     console.log(variations[i].name)
     if (variations[i].is_control) {
       for (var j = 0; j < variations.length; j++) {
         if (!variations[j].is_control && variations[i].name != variations[j].name) {
-          compareControlVariation(variations[i], variations[j])
+          compareControlVariation(variations[i], variations[j], "binomial")
         }
       }
       break;
@@ -471,26 +472,32 @@ function addTestStatistics(variations) {
   }
 }
 
-function compareControlVariation(control, variation) {
-  control.unique_counts.map(function (ccount) {
-    variation.unique_counts.map(function (vcount) {
-      if (ccount.key == vcount.key) {
-        vcount.zscore = getZScore(ccount.rate, control.participation,
-          vcount.rate, variation.participation)
-        vcount.pvalue = getPValue(zscore)
+function compareControlVariation(control, variation, distribution) {
+  control.unique_counts.map(function (ctrl_count) {
+    variation.unique_counts.map(function (var_count) {
+      if (ctrl_count.key == var_count.key) {
+        if (distribution == "binomial") {
+          var zscore = getZScore(ctrl_count.rate, control.participation,
+            var_count.rate, variation.participation)
+          var_count.zscore = zscore
+          var_count.pvalue = getPValue(zscore)
+        }
       }
     });
   });
 }
 
-function getZScore(valueC, countC, valueV, countV) {
-  var stdErrC = Math.sqrt(valueC * (1 - valueC) / countC);
-  var stdErrV = Math.sqrt(valueV * (1 - valueV) / countV);
-  return (valueC - valueV) / (Math.sqrt(Math.pow(stdErrC, 2)) + Math.pow(stdErrV, 2));
+function getZScore(ctrl_value, ctrl_count, var_value, var_count) {
+  // standard deviation formula from https://en.wikipedia.org/wiki/Binomial_distribution#Normal_approximation
+  // zscore formula from https://en.wikipedia.org/wiki/Statistical_hypothesis_testing
+  // Two-proportion z-test, pooled for H0: p1 = p2
+  var ctrl_std_err = Math.sqrt(ctrl_value * (1 - ctrl_value) / ctrl_count);
+  var var_std_err = Math.sqrt(var_value * (1 - var_value) / var_count);
+  return (ctrl_value - var_value) / Math.sqrt(Math.pow(ctrl_std_err, 2) + Math.pow(var_std_err, 2));
 }
 
-function cdfNormal(x, mean, standardDeviation) {
-    return (1 - math.erf((mean - x ) / (Math.sqrt(2) * standardDeviation))) / 2;
+function cdfNormal(x, mean, std_deviation) {
+    return (1 - math.erf((mean - x ) / (Math.sqrt(2) * std_deviation))) / 2;
 };
 
 function getPValue(x) {
