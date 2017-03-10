@@ -22,7 +22,7 @@ VariationsDm.prototype.fetchById = function (id) {
     var that = this;
 
     return co(function *() {
-        var sql     = 'SELECT * FROM `variations` WHERE `id` = ?;';
+        var sql     = 'SELECT * FROM `variations` WHERE `is_deleted` = 0 AND `id` = ?;';
         var results = yield that.pool.pquery(sql, [ id ]);
         return results.length ? sqlToObj(results[0]) : null;
     });
@@ -32,7 +32,7 @@ VariationsDm.prototype.fetchByExperimentId = function (id) {
     var that = this;
 
     return co(function *() {
-        var sql     = 'SELECT * FROM `variations` WHERE `experiment_id` = ? ORDER BY `id`;';
+        var sql     = 'SELECT * FROM `variations` WHERE `is_deleted` = 0 AND `experiment_id` = ? ORDER BY `id`;';
         var results = yield that.pool.pquery(sql, [ id ]);
         return results.map(function (row) {
             return sqlToObj(row);
