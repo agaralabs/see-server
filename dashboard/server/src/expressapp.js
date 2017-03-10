@@ -2,6 +2,7 @@ var express   = require('express');
 var bp        = require('body-parser');
 var cp        = require('cookie-parser');
 var wrap      = require('co-express');
+var math      = require('mathjs');
 var moment    = require('moment-timezone');
 var models    = require('./models');
 var container = require('./container');
@@ -36,7 +37,7 @@ app.get('/experiments', wrap(function* (req, res) {
 
 
 app.post('/experiments', wrap(function* (req, res) {
-    var experiment = new models.ExperimentT(req.body.experiment);    
+    var experiment = new models.ExperimentT(req.body.experiment);
 
     // Validations
     if (!experiment.name) {
@@ -129,7 +130,7 @@ app.put('/experiments/:id', wrap(function *(req, res, next) {
         return next();
     }
 
-    var patch = new models.ExperimentT(req.body.experiment); 
+    var patch = new models.ExperimentT(req.body.experiment);
 
     // Validations
     if (!patch.name) {
@@ -246,7 +247,7 @@ app.post('/experiments/:id/variations', wrap(function *(req, res, next) {
 
     // create
     var id = yield container.get('variations_datamapper').insert(variation);
- 
+
     // fetch again
     var fetched           = yield container.get('variations_datamapper').fetchById(id);
     experiment.variations = yield container.get('variations_datamapper').fetchByExperimentId(req.params.id);
@@ -331,9 +332,9 @@ app.put('/experiments/:experiment_id/variations/:variation_id', wrap(function *(
 
     // update
     yield container.get('variations_datamapper').update(variation);
-  
+
     // fetch again
- 
+
     // fetch again
     var fetched           = yield container.get('variations_datamapper').fetchById(existing.id);
     experiment            = yield container.get('experiments_datamapper').fetchById(experiment.id);
@@ -423,14 +424,78 @@ app.get('/experiments/:experiment_id/stats/counts', wrap(function *(req, res, ne
             req.query.version ? req.query.version : experiment.version,
             vrtn.id
         ).then(function (counts) {
-            vrtn.unique_counts = counts;
+
+            // remove participation from "counts" and add it to "variation"
+            var participation = 0
+            var participationIndex = -1
+            for (var i = 0; i < counts.length; i++) {
+              if (counts[i].key == "participation") {
+                participation = counts[i].value
+                participationIndex = i
+                break;
+              }
+            }
+            // remove participation from counts array
+            counts.splice(participationIndex, 1)
+
+            // add rate = value / parition to each of the counts
+            counts.map(function (row) {
+              var rate = 0
+              if (participation > 0) {
+                rate = row.value / participation
+              }
+              row.rate = rate
+            });
+            vrtn.unique_counts = counts
+            // add participation at "variation" level
+            vrtn.participation = participation
         });
     });
-
     yield tasks;
-
+    addTestStatistics(experiment.variations)
     res.json({ data: { variations: experiment.variations } });
 }));
+
+// Compares control and variation
+function addTestStatistics(variations) {
+  for (var i = 0; i < variations.length; i++) {
+    console.log(variations[i].name)
+    if (variations[i].is_control) {
+      for (var j = 0; j < variations.length; j++) {
+        if (!variations[j].is_control && variations[i].name != variations[j].name) {
+          compareControlVariation(variations[i], variations[j])
+        }
+      }
+      break;
+    }
+  }
+}
+
+function compareControlVariation(control, variation) {
+  control.unique_counts.map(function (ccount) {
+    variation.unique_counts.map(function (vcount) {
+      if (ccount.key == vcount.key) {
+        vcount.zscore = getZScore(ccount.rate, control.participation,
+          vcount.rate, variation.participation)
+        vcount.pvalue = getPValue(zscore)
+      }
+    });
+  });
+}
+
+function getZScore(valueC, countC, valueV, countV) {
+  var stdErrC = Math.sqrt(valueC * (1 - valueC) / countC);
+  var stdErrV = Math.sqrt(valueV * (1 - valueV) / countV);
+  return (valueC - valueV) / (Math.sqrt(Math.pow(stdErrC, 2)) + Math.pow(stdErrV, 2));
+}
+
+function cdfNormal(x, mean, standardDeviation) {
+    return (1 - math.erf((mean - x ) / (Math.sqrt(2) * standardDeviation))) / 2;
+};
+
+function getPValue(x) {
+  return cdfNormal(x, 0, 1)
+}
 
 app.get('/experiments/:experiment_id/stats/timeline/:from/:to/:granularity', wrap(function *(req, res, next) {
     var experiment = yield container.get('experiments_datamapper').fetchById(req.params.experiment_id);
