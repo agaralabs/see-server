@@ -1,11 +1,12 @@
 import React, {PureComponent} from 'react';
 import {bindActionCreators} from 'redux';
 import {connect} from 'react-redux';
-import {ExperimentActions, VariationActions} from '../../actions';
+import {ExperimentActions, VariationActions, StatsActions} from '../../actions';
 import {VariationModel} from '../../models';
 import {Modal} from '../modules/base';
 import VariationsList from '../modules/VariationsList';
 import ExperimentHeader from '../modules/ExperimentHeader';
+import ExperimentTimeline from '../modules/ExperimentTimeline';
 import Helpers from '../../utils/helpers';
 
 
@@ -35,8 +36,18 @@ class ExperimentPage extends PureComponent {
 
 
     componentWillMount() {
+        const currentTime = new Date();
+        const previousTime = new Date(new Date().setHours(currentTime.getHours() - (24 * 24)));
+
         this.props.actions.getExperimentById(this.props.experimentId);
         this.props.actions.fetchVariationsByExpId(this.props.experimentId);
+        this.props.actions.fetchStatsForExperiment(this.props.experimentId);
+        this.props.actions.fetchTimelineForExperiment(
+            this.props.experimentId,
+            previousTime,
+            currentTime,
+            'hourly'
+        );
     }
 
 
@@ -267,7 +278,7 @@ class ExperimentPage extends PureComponent {
                 return this.renderExpVariations();
 
             case 'reports':
-                return null;
+                return this.renderExpTimeline();
 
             default:
                 return null;
@@ -315,6 +326,15 @@ class ExperimentPage extends PureComponent {
                 onVariationInfoChange={this.onVariationInfoChange}
                 onVariationSave={this.onVariationSave}
                 onCancelVariationAddEdit={this.onCancelVariationAddEdit}
+            />
+        );
+    }
+
+
+    renderExpTimeline() {
+        return (
+            <ExperimentTimeline
+                expTimeline={this.props.expTimeline}
             />
         );
     }
@@ -399,6 +419,13 @@ export default connect(
         const experiment = state.experiment.experiments.find(exp => exp.id === experimentId);
         const variations = state.variation.variations.filter(v => v.experimentId === experimentId);
         const experimentErrorType = VariationModel.getExperimentErrorType(variations);
+        const expTimeline = state.stats.expTimelineMapping[experimentId];
+
+        const variationEventsMapping = variations.reduce((mapping, v) => {
+            mapping[v.id] = state.stats.variationEventsMapping[v.id];
+
+            return mapping;
+        }, {});
 
 
         return {
@@ -406,13 +433,16 @@ export default connect(
             apiState,
             experiment,
             variations,
-            experimentErrorType
+            experimentErrorType,
+            variationEventsMapping,
+            expTimeline
         };
     },
     (dispatch => ({
         actions: bindActionCreators({
             ...ExperimentActions,
-            ...VariationActions
+            ...VariationActions,
+            ...StatsActions
         }, dispatch)
     }))
 )(ExperimentPage);

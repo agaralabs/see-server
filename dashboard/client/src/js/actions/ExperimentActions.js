@@ -57,7 +57,7 @@ export function fetchAllExperiments() {
                 dispatch(batchActions(actions));
             })
             .catch(err => {
-                console.log(err);
+                console.error(err);
                 dispatch(_updateExperimentApiState(false, [err]));
             });
     };
@@ -92,7 +92,7 @@ export function createExperiment(experiment) {
                 return exp.id;
             })
             .catch(err => {
-                console.log(err);
+                console.error(err);
                 dispatch(_updateExperimentApiState(false, [err]));
             });
     };
@@ -120,7 +120,7 @@ export function getExperimentById(expId) {
                 dispatch(batchActions(actions));
             })
             .catch(err => {
-                console.log(err);
+                console.error(err);
                 dispatch(_updateExperimentApiState(false, [err]));
             });
     };
@@ -153,7 +153,7 @@ export function updateExperiment(experiment) {
                 dispatch(batchActions(actions));
             })
             .catch(err => {
-                console.log(err);
+                console.error(err);
                 dispatch(_updateExperimentApiState(false, [err]));
             });
     };

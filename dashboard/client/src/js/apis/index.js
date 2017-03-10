@@ -6,3 +6,6 @@ export {_ExperimentApi as ExperimentApi};
 
 import _VariationApi from './VariationApi';
 export {_VariationApi as VariationApi};
+
+import _StatsApi from './StatsApi';
+export {_StatsApi as StatsApi};

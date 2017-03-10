@@ -73,7 +73,7 @@ export function fetchVariationsByExpId(expId) {
                 dispatch(batchActions(actions));
             })
             .catch(err => {
-                console.log(err);
+                console.error(err);
                 dispatch(_updateVariationApiState(false, [err]));
             });
     };
@@ -102,7 +102,7 @@ export function deleteVariation(expId, varId) {
                 dispatch(batchActions(actions));
             })
             .catch(err => {
-                console.log(err);
+                console.error(err);
                 dispatch(_updateVariationApiState(false, [err]));
             });
     };
@@ -135,7 +135,7 @@ export function createVariation(experimentId, variation) {
                 dispatch(batchActions(actions));
             })
             .catch(err => {
-                console.log(err);
+                console.error(err);
                 dispatch(_updateVariationApiState(false, [err]));
             });
     };
@@ -168,7 +168,7 @@ export function updateVariation(experimentId, variation) {
                 dispatch(batchActions(actions));
             })
             .catch(err => {
-                console.log(err);
+                console.error(err);
                 dispatch(_updateVariationApiState(false, [err]));
             });
     };

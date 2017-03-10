@@ -12,7 +12,6 @@ module.exports = {
     isWatchEnabled: isWatchEnabled,
     path: {
         src: __dirname + '/src',
-        dist: __dirname + '/dist',
-        publicPath: '/desktop'
+        dist: __dirname + '/dist'
     }
 };
