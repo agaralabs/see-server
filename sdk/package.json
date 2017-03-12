@@ -1,7 +1,7 @@
 {
-  "name": "see-js",
+  "name": "sieve-js",
   "version": "1.6.0",
-  "description": "Client side js for Stayzilla Experimentation Engine",
+  "description": "Client side js sdk for Sieve A/B Testing framework",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -18,10 +18,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ramnique/see-js.git"
+    "url": "git+https://github.com/agaralabs/sieve.git"
   },
   "bugs": {
-    "url": "https://github.com/ramnique/see-js/issues"
+    "url": "https://github.com/agaralabs/sieve/issues"
   },
-  "homepage": "https://github.com/ramnique/see-js#readme"
+  "homepage": "https://github.com/agaralabs/sieve#readme"
 }

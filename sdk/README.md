@@ -1,13 +1,13 @@
-# see-js
+# sieve-js
 
-Client side npm module for Stayzilla Experimentation Engine
+Client side npm module for Sieve A/B Testing framework
 
 ## Set up and integration
 
 Install module using npm:
 
 ```sh
-npm install see-js
+npm install sieve-js
 ```
 
 Sample integration:
@@ -15,10 +15,10 @@ Sample integration:
 **NOTE**: Use webpack or browserify to compile for client side
 
 ```js
-var See = require('see-js');
+var Sieve = require('sieve-js');
 
-var client = new See({
-    base_url: 'https://see-server-url'
+var client = new Sieve({
+    base_url: 'https://sieve-server-url'
 });
 
 client.allocate()
