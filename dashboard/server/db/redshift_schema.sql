@@ -11,3 +11,7 @@ create table records(
     referer varchar(10000) encode lzo,
     agent varchar(10000) encode lzo
 );
+
+CREATE TABLE bad_agents(
+   agent varchar(10000) encode sortkey
+);

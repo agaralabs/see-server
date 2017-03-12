@@ -2,3 +2,4 @@ node_modules/
 *.swp
 *.bak
 .idea
+src/config/config.ini

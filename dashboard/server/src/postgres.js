@@ -1,11 +1,11 @@
 var config = require('./config');
 var pg     = require('pg');
 var pool   = new pg.Pool({
-    host           : config.postgres.host,
-    port           : config.postgres.port,
-    database       : config.postgres.database,
-    user           : config.postgres.user,
-    password       : config.postgres.password
+    host           : config.analysisdb.host,
+    port           : config.analysisdb.port,
+    database       : config.analysisdb.database,
+    user           : config.analysisdb.user,
+    password       : config.analysisdb.password
 });
 
 function pquery(sql, params) {

@@ -1,78 +1,40 @@
 package com.agaralabs.sieve;
 
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
+import org.apache.spark.sql.SQLContext;
+import org.apache.spark.sql.SaveMode;
 import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.SparkConf;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
-import org.apache.commons.lang3.StringEscapeUtils;
-import com.google.gson.Gson;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.List;
+import java.util.Properties;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Arrays;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-
-class Event {
-    String uid;
-    int experiment_id;
-    int experiment_version;
-    int variation_id;
-    String event_name;
-    String time;
-    String remote;
-    String method;
-    String path;
-    String referer;
-    String agent;
-
-    Event() {
-    }
-
-    Event(Event other) {
-        uid                = other.uid;
-        experiment_id      = other.experiment_id;
-        experiment_version = other.experiment_version;
-        variation_id       = other.variation_id;
-        event_name         = other.event_name;
-        time               = other.time;
-        remote             = other.remote;
-        method             = other.method;
-        path               = other.path;
-        referer            = other.referer;
-        agent              = other.agent;
-    }
-
-    String toCSVString() {
-        ZonedDateTime t = ZonedDateTime.parse(time).withZoneSameInstant(ZoneId.of("UTC"));
-
-        ArrayList<String> cols = new ArrayList<String>();
-        cols.add(uid);
-        cols.add(Integer.toString(experiment_id));
-        cols.add(Integer.toString(experiment_version));
-        cols.add(Integer.toString(variation_id));
-        cols.add(event_name);
-        cols.add(t.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssxxx")));
-        cols.add(remote);
-        cols.add(method);
-        cols.add(path);
-        cols.add(referer);
-        cols.add(agent);
-
-        return cols.stream()
-            .reduce((s1, s2) -> s1 + "," + StringEscapeUtils.escapeCsv(s2))
-            .get();
-    }
-}
 
 public class Task 
 {
+    private final static int NUM_PARTITIONS = 30;
+    private final static String DB_TYPE = System.getenv("DB_TYPE");
+    private final static String DB_HOST = System.getenv("DB_HOST");
+    private final static String DB_PORT = System.getenv("DB_PORT");
+    private final static String DB_USER = System.getenv("DB_USER");
+    private final static String DB_PASS = System.getenv("DB_PASS");
+    private final static String DB_NAME = System.getenv("DB_NAME");
+    private final static String DB_TEMP = System.getenv("DB_TEMP");
+
     public static void main(String[] args)
     {
         if (args.length != 4) {
@@ -88,7 +50,7 @@ public class Task
         path_parts.add(args[0]);
 
         if (from.getYear() == to.getYear()) {
-            path_parts.add(String.format("%02d", from.getYear()));
+            path_parts.add(String.format("%d", from.getYear()));
 
             if (from.getMonthValue() == to.getMonthValue()) {
                 path_parts.add(String.format("%02d", from.getMonthValue()));
@@ -117,24 +79,18 @@ public class Task
 
         SparkConf conf       = new SparkConf().setAppName("Sieve - nginx parser");
         JavaSparkContext sc  = new JavaSparkContext(conf);
+        SQLContext sqlCtx    = new SQLContext(sc);
 
-        JavaRDD<String> infile = sc.textFile(input_path);
-
-        JavaRDD<String> csvLines = infile
-            .filter((line) -> {
-                Gson gson = new Gson();
-                Event ev  = gson.fromJson(line, Event.class);
-
+        JavaRDD<Record> recRDD = sc.textFile(input_path)
+            .map(Record::parseFromJsonString)
+            .filter((ev) -> {
                 ZonedDateTime candidate = ZonedDateTime.parse(ev.time).withZoneSameInstant(ZoneId.of("UTC"));
                 return !candidate.toLocalDateTime().isBefore(from.toLocalDateTime()) && !candidate.toLocalDateTime().isAfter(to.toLocalDateTime());
             })
-            .flatMap((line) -> {
-                ArrayList<String> records = new ArrayList<String>();
-                Gson gson    = new Gson();
+            .flatMap((parsed) -> {
+                ArrayList<Record> records = new ArrayList<Record>();
 
                 try {
-                    Event parsed = gson.fromJson(line, Event.class);
-
                     final List<NameValuePair> params = URLEncodedUtils.parse(parsed.path.substring(7), StandardCharsets.UTF_8);
                     HashMap<String, String> paramMap = new HashMap<String, String>();
 
@@ -149,27 +105,84 @@ public class Task
                     for (final String exp: parts) {
                         try {
                             final List<String> segments = Arrays.asList(exp.split(":"));
-                            Event ev                    = new Event(parsed);
+                            Record ev                   = new Record(parsed);
                             ev.experiment_id            = Integer.parseInt(segments.get(0));
                             ev.experiment_version       = Integer.parseInt(segments.get(1));
                             ev.variation_id             = Integer.parseInt(segments.get(2));
-                            records.add(ev.toCSVString());
+                            records.add(ev);
                         } catch(NumberFormatException e) {
                             System.out.println("## ERROR in path: " + parsed.path);
                             continue;
                         }
                     }
                 } catch(Exception e) {
-                    System.out.println("## ERROR in line: " + line);
+                    System.out.println("## ERROR in line: " + parsed.toString());
                     System.out.println(e.getMessage());
-                } finally {
-                    return records.iterator();
                 }
-            });
+                return records.iterator();
+            }).repartition(NUM_PARTITIONS);
 
-        csvLines.saveAsTextFile(args[1]);
+        // recRDD.saveAsTextFile(args[1]);
 
-        System.out.println( "done" );
+        Dataset<Row> ds = sqlCtx.createDataFrame(recRDD, Record.class);
+
+        if (DB_TYPE.equals("redshift"))
+            writeDatasetToRedshift(ds, from, to);
+        else
+            writeDatasetToPostgres(ds, from, to);
+
         sc.stop();
     }
+
+    private static void writeDatasetToRedshift(Dataset<Row> ds, ZonedDateTime from, ZonedDateTime to)
+    {
+        System.out.println("USING REDSHIFT");
+        String jdbcUrl = String.format("jdbc:postgresql://%s:%s/%s?user=%s&password=%s", DB_HOST, DB_PORT == null ? "5439" : DB_PORT, DB_NAME, DB_USER, DB_PASS);
+        ds.write().mode(SaveMode.Append).format("com.databricks.spark.redshift").option("url", jdbcUrl).option("query", "DELETE FROM ").save();
+        ds.write()
+            .mode(SaveMode.Append)
+            .format("com.databricks.spark.redshift")
+            .option("url", jdbcUrl)
+            .option("tempdir", DB_TEMP)
+            .option("dbtable", "records")
+            .option("extracopyoptions", "dateformat 'auto' timeformat 'auto'")
+            .save();
+    }
+
+    private static void writeDatasetToPostgres(Dataset<Row> ds, ZonedDateTime from, ZonedDateTime to)
+    {
+        System.out.println("USING POSTGRES");
+        System.out.println(System.getenv());
+        String jdbcUrl = String.format("jdbc:postgresql://%s:%s/%s", DB_HOST, DB_PORT == null ? "5432" : DB_PORT, DB_NAME);
+
+        Properties connectionProperties = new Properties();
+        connectionProperties.put("user", DB_USER);
+        connectionProperties.put("password", DB_PASS);
+        connectionProperties.put("driver", "org.postgresql.Driver");
+
+        Connection conn = null;
+        PreparedStatement st = null;
+
+        // Clean records
+        try {
+            Class.forName("org.postgresql.Driver");
+            conn = DriverManager.getConnection(jdbcUrl);
+            st = conn.prepareStatement("DELETE FROM records WHERE time >= ? AND time <= ?");
+            st.setTimestamp(1, new Timestamp(from.toEpochSecond()));
+            st.setTimestamp(2, new Timestamp(to.toEpochSecond()));
+            int res = st.executeUpdate();
+            System.out.println(String.format("DELETED %d ROWS", res));
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            try { st.close(); } catch (Exception e) {}
+            try { conn.close(); } catch (Exception e) {}
+        }
+
+        // Write to database
+        ds.write().mode(SaveMode.Append).jdbc(jdbcUrl, "records", connectionProperties);
+    }
+
 }

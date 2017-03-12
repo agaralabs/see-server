@@ -22,7 +22,7 @@ function shellex(cmd) {
             };
 
             if (err) {
-                console.log(err);
+                console.log(stdout);
                 console.log(stderr);
                 return reject(err);
             }
@@ -70,27 +70,12 @@ function init() {
         else
             res = yield submitToSpark(uid, from, to);
 
-        // Clear 
-        yield pg.pquery('delete from records where time >= $1 AND time <= $2', [from.format('YYYY-MM-DD HH:mm:ss'), to.format('YYYY-MM-DD HH:mm:ss')]);
-
-        // Reload data
-        if (config.postgres.host.indexOf('redshift.amazonaws.com') > 0) {
-            // Using redshift
-            yield pg.pquery([
-                "copy records from '" + config.spark.output_path + '/' + uid + "/part'",
-                config.spark.s3_region ? "region '" + config.spark.s3_region + "'" : "",
-                process.env.AWS_ACCESS_KEY ? "credentials 'aws_access_key_id=" + process.env.AWS_ACCESS_KEY + ";aws_secret_access_key=" + process.env.AWS_SECRET_KEY + "'" : "",
-                "csv",
-                "dateformat 'auto'",
-                "timeformat 'auto';"
-            ].join("\n"), []);
-        }
     });
 }
 
 function* submitToEMR(uid, from, to) {
     // Launch EMR cluster to process nginx records to csv
-    var cmd = generateEmrCmd(uid, from, to);
+    var cmd = getEmrCmd(uid, from, to).join(' \\\n');
     var result = yield shellex(cmd);
 
     // Wait for cluster to boot up
@@ -105,12 +90,11 @@ function* submitToEMR(uid, from, to) {
 
 function* submitToSpark(uid, from, to) {
     // Submit job to spark cluster to process nginx records to csv
-    var cmd = generateSparkCmd(uid, from, to);
-    console.log(cmd);
+    var cmd = getSparkCmd(uid, from, to).join(' \\\n');
     return shellex(cmd);
 }
 
-function generateEmrCmd(uid, from, to) {
+function getEmrCmd(uid, from, to) {
     return [
         'aws emr create-cluster',
         '--release-label emr-5.3.0',
@@ -122,18 +106,20 @@ function generateEmrCmd(uid, from, to) {
         '--name ' + config.emr.name,
         '--applications Name=Spark',
         '--ec2-attributes ' + config.emr.ec2_attributes,
-        '--steps Type=Spark,Name="nginx-to-csv",ActionOnFailure=CONTINUE,Args=[' + generateArgsForSpark(uid, from, to).join(',') + ']'
-    ].join(' \\\n');
+        '--steps Type=Spark,Name="nginx-to-csv",Jar="command-runner.jar",ActionOnFailure=CONTINUE,' +
+        'Args=["' + getSparkCmd(uid, from, to, ',').join('","') + '"]'
+    ];
 }
 
-function generateSparkCmd(uid, from, to) {
+function getSparkCmd(uid, from, to, argsep) {
+    argsep = argsep || ' ';
     return [
-        config.spark.cmd,
-        generateArgsForSpark(uid, from, to).join(' ')
-    ].join(' \\\n');
+        getSparkEnvVars().join(' ') + ' ' + config.spark.cmd,
+        getSparkArgs(uid, from, to).join(argsep)
+    ];
 }
 
-function generateArgsForSpark(uid, from, to) {
+function getSparkArgs(uid, from, to) {
     return [
         '--class', config.spark.task_class,
         '--deploy-mode', config.spark.deploy_mode,
@@ -145,3 +131,16 @@ function generateArgsForSpark(uid, from, to) {
         to.format()
     ];
 }
+
+function getSparkEnvVars() {
+    return [
+        ['DB_TYPE', config.analysisdb.type],
+        ['DB_HOST', config.analysisdb.host],
+        ['DB_PORT', config.analysisdb.port],
+        ['DB_USER', config.analysisdb.user],
+        ['DB_PASS', config.analysisdb.password],
+        ['DB_NAME', config.analysisdb.database],
+        ['DB_TEMP', config.analysisdb.tempdir]
+    ].map(function (e) { console.log(e); return e.join('='); });
+}
+
