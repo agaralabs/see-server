@@ -418,13 +418,15 @@ app.get('/experiments/:experiment_id/stats/counts', wrap(function *(req, res, ne
 
     experiment.variations = yield container.get('variations_datamapper').fetchByExperimentId(experiment.id);
 
+    var varcounts = [];
+
     var tasks = experiment.variations.map(function (vrtn) {
         return container.get('stats').fetchEventCounts(
             experiment.id,
             req.query.version ? req.query.version : experiment.version,
             vrtn.id
         ).then(function (counts) {
-
+            var varcount = new models.VariationCountT();
             // remove participation from "counts" and add it to "variation"
             var participation = 0
             var participationIndex = -1
@@ -436,34 +438,35 @@ app.get('/experiments/:experiment_id/stats/counts', wrap(function *(req, res, ne
               }
             }
             // remove participation from counts array
-            counts.splice(participationIndex, 1)
+            counts.splice(participationIndex, 1);
 
             // add rate = value / parition to each of the counts
             counts.map(function (row) {
-              var rate = 0
+              var rate = 0;
               if (participation > 0) {
                 rate = row.value / participation
               }
-              row.rate = rate
+              row.rate = rate;
             });
-            vrtn.unique_counts = counts
+            varcount.unique_counts = counts;
             // add participation at "variation" level
-            vrtn.participation = participation
+            varcount.id = vrtn.id;
+            varcount.is_control = vrtn.is_control;
+            varcounts.push(varcount)
         });
     });
     yield tasks;
-    addTestStatistics(experiment.variations)
-    res.json({ data: { variations: experiment.variations } });
+    addTestStatistics(varcounts)
+    res.json({ data: { variations: varcounts } });
 }));
 
 // Compares control and variation
 // For formulas https://en.wikipedia.org/wiki/Statistical_hypothesis_testing
 function addTestStatistics(variations) {
   for (var i = 0; i < variations.length; i++) {
-    console.log(variations[i].name)
     if (variations[i].is_control) {
       for (var j = 0; j < variations.length; j++) {
-        if (!variations[j].is_control && variations[i].name != variations[j].name) {
+        if (!variations[j].is_control && i != j) {
           compareControlVariation(variations[i], variations[j], "binomial")
         }
       }
@@ -540,7 +543,9 @@ app.get('/experiments/:experiment_id/stats/timeline/:from/:to/:granularity', wra
         return;
     }
 
+    var vartimelines = [];
     var tasks = experiment.variations.map(function (vrtn) {
+        var vartimeline = new models.VariationTimelineT();
         return container.get('stats').fetchEventTimeline(
             experiment.id,
             req.query.version ? req.query.version : experiment.version,
@@ -549,13 +554,15 @@ app.get('/experiments/:experiment_id/stats/timeline/:from/:to/:granularity', wra
             moment(req.params.to),
             req.params.granularity
         ).then(function (items) {
-            vrtn.timeline = items;
+            vartimeline.id = vrtn.id
+            vartimeline.timeline = items;
+            vartimelines.push(vartimeline);
         });
     });
 
     yield tasks;
 
-    res.json({ data: { variations: experiment.variations } });
+    res.json({ data: { variations: vartimelines } });
 }));
 
 function serialize(dict) {
