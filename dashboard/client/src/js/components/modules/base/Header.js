@@ -3,17 +3,15 @@ import {Link} from '../../../utils/router';
 
 export default function () {
     return (
-        <header className="header">
-            <nav className="nav has-shadow">
-                <div className="nav-left">
+        <header className="header has-shadow">
+                <div className="container">
                     <Link
                         to="/"
-                        className="nav-item header__title"
+                        className="header__title"
                     >
                         Sieve
                     </Link>
                 </div>
-            </nav>
         </header>
     );
 }

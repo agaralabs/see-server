@@ -1,16 +1,25 @@
 import React, {PureComponent} from 'react';
-import {LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend} from 'recharts';
+import {ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend} from 'recharts';
+import Helpers from '../../utils/helpers';
 
 export default class ExperimentTimeline extends PureComponent {
     constructor(props) {
         super(props);
 
+        this.colors = Helpers.getColors();
+
         this.state = {
+            selectedEvent: 'srp_card_cta_click',
             data: [
-                {name: 'Page A', uv: 4000, pv: {
-                    'v1': 123,
-                    'v2': 5453
-                }, amt: 2400},
+                {
+                    name: 'Page A',
+                    uv: 4000,
+                    pv: {
+                        'v1': 123,
+                        'v2': 5453
+                    },
+                    amt: 2400
+                },
                 {name: 'Page B', uv: 3000, pv: {
                     'v1': 908,
                     'v2': 898
@@ -39,31 +48,49 @@ export default class ExperimentTimeline extends PureComponent {
         };
     }
 
+
     render() {
+        const graphData = this.props.expTimeline.eventTimeline[this.state.selectedEvent];
+        const interval = Math.floor(graphData.length / 15);
+
+        const lines = this.props.variations.map((v, i) => {
+            return (
+                <Line
+                    key={v.id}
+                    type="monotone"
+                    name={v.name}
+                    dataKey={`variations.${v.id}`}
+                    stroke={this.colors[i % this.colors.length]}
+                />
+            );
+        });
+
+
         return (
-            <LineChart
-                width={600}
-                height={300}
-                data={this.state.data}
-                margin={{top: 5, right: 30, left: 20, bottom: 5}}
+            <ResponsiveContainer
+                width="100%"
+                height={500}
             >
-                <XAxis dataKey="name" />
-                <YAxis />
-                <CartesianGrid strokeDasharray="3 3" />
-                <Tooltip />
-                <Legend />
-                <Line
-                    type="monotone"
-                    dataKey="pv.v1"
-                    stroke="#8884d8"
-                    activeDot={{r: 8}}
-                />
-                <Line
-                    type="monotone"
-                    dataKey="pv.v2"
-                    stroke="#82ca9d"
-                />
-            </LineChart>
+                <LineChart
+                    width={600}
+                    height={300}
+                    data={graphData}
+                    margin={{top: 0, right: 0, left: 0, bottom: 0}}
+                >
+                    <XAxis
+                        dataKey="timeLabel"
+                        interval={interval}
+                        domain={['dataMin', 'dataMax + 2']}
+                    />
+                    <YAxis
+                        domain={['dataMin', 'dataMax + 2']}
+                    />
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <Tooltip />
+                    <Legend />
+                    {lines}
+                </LineChart>
+            </ResponsiveContainer>
         );
     }
 }

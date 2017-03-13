@@ -37,7 +37,7 @@ class ExperimentPage extends PureComponent {
 
     componentWillMount() {
         const currentTime = new Date();
-        const previousTime = new Date(new Date().setHours(currentTime.getHours() - (24 * 24)));
+        const previousTime = new Date(new Date().setHours(currentTime.getHours() - (24 * 40)));
 
         this.props.actions.getExperimentById(this.props.experimentId);
         this.props.actions.fetchVariationsByExpId(this.props.experimentId);
@@ -46,7 +46,7 @@ class ExperimentPage extends PureComponent {
             this.props.experimentId,
             previousTime,
             currentTime,
-            'hourly'
+            'daily'
         );
     }
 
@@ -334,6 +334,8 @@ class ExperimentPage extends PureComponent {
     renderExpTimeline() {
         return (
             <ExperimentTimeline
+                experimet={this.props.experiment}
+                variations={this.props.variations}
                 expTimeline={this.props.expTimeline}
             />
         );
@@ -400,9 +402,11 @@ class ExperimentPage extends PureComponent {
                 <div className="container page page-experiment">
                     {this.renderExperimentError()}
                     {this.renderExperimentHeader()}
-                    {this.renderTabs()}
-                    {this.renderTabContent()}
-                    {this.renderVariationDeletionDialog()}
+                    <div className="box">
+                        {this.renderTabs()}
+                        {this.renderTabContent()}
+                        {this.renderVariationDeletionDialog()}
+                    </div>
                 </div>
             );
         }
@@ -420,6 +424,8 @@ export default connect(
         const variations = state.variation.variations.filter(v => v.experimentId === experimentId);
         const experimentErrorType = VariationModel.getExperimentErrorType(variations);
         const expTimeline = state.stats.expTimelineMapping[experimentId];
+
+        console.log(expTimeline);
 
         const variationEventsMapping = variations.reduce((mapping, v) => {
             mapping[v.id] = state.stats.variationEventsMapping[v.id];

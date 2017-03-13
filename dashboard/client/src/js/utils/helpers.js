@@ -43,7 +43,18 @@ function formatDate(dateObj, format = 'MMM Do, YYYY') {
 }
 
 
+/**
+ * Returns an array of some random color hex codes
+ *
+ * @return {Array}
+ */
+function getColors() {
+    return ['#F44336', '#9C27B0', '#3F51B5', '#00BCD4', '#8BC34A', '#FF9800', '#795548', '#E91E63', '#673AB7', '#2196F3', '#009688', '#4CAF50', '#FFC107'];
+}
+
+
 export default {
     getNumberStr,
-    formatDate
+    formatDate,
+    getColors
 };

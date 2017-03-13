@@ -18,7 +18,7 @@ function getExperimentStatusButton(experiment, errorType, onStatusToggle) {
             type="button"
             disabled={isDisabled}
             onClick={onStatusToggle}
-            className="button is-primary is-outlined"
+            className="button is-primary"
         >
             {btnTxt}
         </button>
@@ -41,7 +41,7 @@ export default function (props) {
                     <div className="control">
                         <Link
                             to={`/experiments/${props.experiment.id}/edit`}
-                            className="button is-info is-outlined"
+                            className="button is-info"
                         >
                             Edit
                         </Link>
@@ -50,7 +50,7 @@ export default function (props) {
                         <button
                             type="button"
                             onClick={props.onExperimentDelete}
-                            className="button is-danger is-outlined"
+                            className="button is-danger"
                         >
                             Delete
                         </button>

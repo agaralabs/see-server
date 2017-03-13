@@ -23,61 +23,63 @@ class DashboardPage extends Component {
                     <h1 className="title is-3 is-pulled-left">All Experiments</h1>
                     <Link
                         to="/experiments/add"
-                        className="button is-primary is-outlined is-pulled-right"
+                        className="button is-primary is-pulled-right"
                     >
-                        Create new Experiment
+                        Create New Experiment
                     </Link>
                 </div>
 
-                <table className="table is-striped">
-                    <thead>
-                        <tr>
-                            <th>Id</th>
-                            <th>Name</th>
-                            <th>Status</th>
-                            <th>Exposure</th>
-                            <th>Created On</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {
-                            this.props.experiments.map(exp => {
-                                return (
-                                    <tr key={exp.id}>
-                                        <td>{exp.id}</td>
-                                        <td>
-                                            <Link to={`/experiments/${exp.id}`}>{exp.name}</Link>
-                                        </td>
-                                        <td>{exp.isActive ? 'Running' : 'Paused'}</td>
-                                        <td>{exp.exposure}%</td>
-                                        <td>{Helpers.formatDate(exp.createTime)}</td>
-                                        <td>
-                                            <div className="control is-grouped">
-                                                <div className="control">
-                                                    <Link
-                                                        to={`/experiments/${exp.id}`}
-                                                        className="button is-small is-primary is-outlined"
-                                                    >
-                                                        View
-                                                    </Link>
+                <div className="box">
+                    <table className="table">
+                        <thead>
+                            <tr>
+                                <th>Id</th>
+                                <th>Name</th>
+                                <th>Status</th>
+                                <th>Exposure</th>
+                                <th>Created On</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {
+                                this.props.experiments.map(exp => {
+                                    return (
+                                        <tr key={exp.id}>
+                                            <td>{exp.id}</td>
+                                            <td>
+                                                <Link to={`/experiments/${exp.id}`}>{exp.name}</Link>
+                                            </td>
+                                            <td>{exp.isActive ? 'Running' : 'Paused'}</td>
+                                            <td>{exp.exposure}%</td>
+                                            <td>{Helpers.formatDate(exp.createTime)}</td>
+                                            <td>
+                                                <div className="control is-grouped">
+                                                    <div className="control">
+                                                        <Link
+                                                            to={`/experiments/${exp.id}`}
+                                                            className="button is-small is-primary is-outlined"
+                                                        >
+                                                            View
+                                                        </Link>
+                                                    </div>
+                                                    <div className="control">
+                                                        <Link
+                                                            to={`/experiments/${exp.id}/update`}
+                                                            className="button is-small is-info is-outlined"
+                                                        >
+                                                            Edit
+                                                        </Link>
+                                                    </div>
                                                 </div>
-                                                <div className="control">
-                                                    <Link
-                                                        to={`/experiments/${exp.id}/update`}
-                                                        className="button is-small is-info is-outlined"
-                                                    >
-                                                        Edit
-                                                    </Link>
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                );
-                            })
-                        }
-                    </tbody>
-                </table>
+                                            </td>
+                                        </tr>
+                                    );
+                                })
+                            }
+                        </tbody>
+                    </table>
+                </div>
             </section>
         );
     }
