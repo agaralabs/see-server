@@ -30,6 +30,20 @@ function getNumberStr(str) {
 
 
 /**
+ * Rounds the floating number upto given decimal places
+ *
+ * @param  {Number} number
+ * @param  {Number} roundUpto
+ * @return {Number}
+ */
+function roundFloatingNumber(number, roundUpto) {
+    const base = Math.pow(10, roundUpto);
+
+    return Math.round(number * base) / base;
+}
+
+
+/**
  * For a given date object, it will return the string
  * representation in the format specified as 'format'
  *
@@ -55,6 +69,7 @@ function getColors() {
 
 export default {
     getNumberStr,
+    roundFloatingNumber,
     formatDate,
     getColors
 };

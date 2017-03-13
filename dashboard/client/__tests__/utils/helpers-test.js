@@ -13,4 +13,12 @@ describe('Helper util functions', () => {
         expect(Helpers.formatDate(new Date('2015, 10, 20'), 'dddd MMMM Do, YYYY')).toEqual('Tuesday October 20th, 2015');
         expect(Helpers.formatDate(new Date('2015, 10, 20'))).toEqual('Oct 20th, 2015');
     });
+
+
+    it('should round the floating point number', () => {
+        expect(Helpers.roundFloatingNumber(13.449292, 3)).toEqual(13.449);
+        expect(Helpers.roundFloatingNumber(13.4139, 3)).toEqual(13.414);
+        expect(Helpers.roundFloatingNumber(13.99093, 3)).toEqual(13.991);
+        expect(Helpers.roundFloatingNumber(13.99993, 3)).toEqual(14);
+    });
 });

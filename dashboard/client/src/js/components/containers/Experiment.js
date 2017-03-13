@@ -14,10 +14,16 @@ class ExperimentPage extends PureComponent {
     constructor(props) {
         super(props);
 
+        const currentTime = new Date();
+        const previousTime = new Date(new Date().setHours(currentTime.getHours() - (24 * 40)));
+
         this.state = {
-            activeTab: 'variations',
+            activeTab: 'reports',
             selectedVariation: null,
             isVarEditModeOn: false,
+            graphFromDate: previousTime,
+            graphToDate: currentTime,
+            graphGranularity: 'daily',
             shouldConfirmVarDeletion: false,
             shouldConfirmExpDeletion: false
         };
@@ -32,21 +38,24 @@ class ExperimentPage extends PureComponent {
         this.onVariationInfoChange = this.onVariationInfoChange.bind(this);
         this.onVariationSave = this.onVariationSave.bind(this);
         this.onCancelVariationAddEdit = this.onCancelVariationAddEdit.bind(this);
+        this.onGraphGranularityChange = this.onGraphGranularityChange.bind(this);
     }
 
 
     componentWillMount() {
-        const currentTime = new Date();
-        const previousTime = new Date(new Date().setHours(currentTime.getHours() - (24 * 40)));
-
         this.props.actions.getExperimentById(this.props.experimentId);
         this.props.actions.fetchVariationsByExpId(this.props.experimentId);
         this.props.actions.fetchStatsForExperiment(this.props.experimentId);
+        this.fetchGraphInformation();
+    }
+
+
+    fetchGraphInformation() {
         this.props.actions.fetchTimelineForExperiment(
             this.props.experimentId,
-            previousTime,
-            currentTime,
-            'daily'
+            this.state.graphFromDate,
+            this.state.graphToDate,
+            this.state.graphGranularity
         );
     }
 
@@ -184,6 +193,13 @@ class ExperimentPage extends PureComponent {
             selectedVariation: null,
             isVarEditModeOn: false
         });
+    }
+
+
+    onGraphGranularityChange(granularity) {
+        this.setState({
+            graphGranularity: granularity
+        }, this.fetchGraphInformation);
     }
 
 
@@ -334,9 +350,16 @@ class ExperimentPage extends PureComponent {
     renderExpTimeline() {
         return (
             <ExperimentTimeline
-                experimet={this.props.experiment}
+                statsApiStatus={this.props.statsApiStatus}
+                timelineApiStatus={this.props.timelineApiStatus}
+                experiment={this.props.experiment}
                 variations={this.props.variations}
+                variationStats={this.props.variationStats}
                 expTimeline={this.props.expTimeline}
+                graphGranularity={this.state.graphGranularity}
+                graphFromDate={this.state.graphFromDate}
+                graphToDate={this.state.graphToDate}
+                onGraphGranularityChange={this.onGraphGranularityChange}
             />
         );
     }
@@ -419,28 +442,30 @@ class ExperimentPage extends PureComponent {
 export default connect(
     (state, props) => {
         const experimentId = Number(props.params.expId);
+
         const apiState = state.experiment.experimentApiStatus;
+        const statsApiStatus = state.stats.statsApiStatus;
+        const timelineApiStatus = state.stats.timelineApiStatus;
         const experiment = state.experiment.experiments.find(exp => exp.id === experimentId);
         const variations = state.variation.variations.filter(v => v.experimentId === experimentId);
         const experimentErrorType = VariationModel.getExperimentErrorType(variations);
         const expTimeline = state.stats.expTimelineMapping[experimentId];
 
-        console.log(expTimeline);
-
-        const variationEventsMapping = variations.reduce((mapping, v) => {
-            mapping[v.id] = state.stats.variationEventsMapping[v.id];
+        const variationStats = variations.reduce((mapping, v) => {
+            mapping[v.id] = state.stats.variationStats[v.id];
 
             return mapping;
         }, {});
 
-
         return {
             experimentId,
             apiState,
+            statsApiStatus,
+            timelineApiStatus,
             experiment,
             variations,
             experimentErrorType,
-            variationEventsMapping,
+            variationStats,
             expTimeline
         };
     },

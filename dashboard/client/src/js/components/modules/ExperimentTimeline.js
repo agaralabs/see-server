@@ -1,12 +1,13 @@
 import React, {PureComponent} from 'react';
-import {ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend} from 'recharts';
-import Helpers from '../../utils/helpers';
+import EventVariationLineGraph from './EventVariationLineGraph';
+import VariationStats from './VariationStats';
+import EventSelector from './EventSelector';
+import GranularitySelector from './GranularitySelector';
+
 
 export default class ExperimentTimeline extends PureComponent {
     constructor(props) {
         super(props);
-
-        this.colors = Helpers.getColors();
 
         this.state = {
             selectedEvent: 'srp_card_cta_click',
@@ -46,51 +47,98 @@ export default class ExperimentTimeline extends PureComponent {
                 }, amt: 2100}
             ]
         };
+
+        this.onEventChange = this.onEventChange.bind(this);
+        this.onGranularityChange = this.onGranularityChange.bind(this);
+    }
+
+
+    onEventChange(e) {
+        this.setState({
+            selectedEvent: e.target.value
+        });
+    }
+
+
+    onGranularityChange(e) {
+        this.props.onGraphGranularityChange(e.target.value);
+    }
+
+
+    getUniqueEvents() {
+        let events = [];
+
+        if (this.props.expTimeline) {
+            events = events.concat(Object.keys(this.props.expTimeline.eventTimeline));
+        }
+
+        if (this.props.variationStats && this.props.variations.length) {
+            this.props.variations.forEach(v => {
+                if (this.props.variationStats[v.id]) {
+                    this.props.variationStats[v.id].forEach(stat => {
+                        events.push(stat.name);
+                    });
+                }
+            });
+        }
+
+        // return unique event values
+        return [...new Set(events)].filter(e => e !== 'participation');
     }
 
 
     render() {
-        const graphData = this.props.expTimeline.eventTimeline[this.state.selectedEvent];
-        const interval = Math.floor(graphData.length / 15);
-
-        const lines = this.props.variations.map((v, i) => {
-            return (
-                <Line
-                    key={v.id}
-                    type="monotone"
-                    name={v.name}
-                    dataKey={`variations.${v.id}`}
-                    stroke={this.colors[i % this.colors.length]}
-                />
-            );
-        });
-
+        const events = this.getUniqueEvents();
 
         return (
-            <ResponsiveContainer
-                width="100%"
-                height={500}
-            >
-                <LineChart
-                    width={600}
-                    height={300}
-                    data={graphData}
-                    margin={{top: 0, right: 0, left: 0, bottom: 0}}
-                >
-                    <XAxis
-                        dataKey="timeLabel"
-                        interval={interval}
-                        domain={['dataMin', 'dataMax + 2']}
-                    />
-                    <YAxis
-                        domain={['dataMin', 'dataMax + 2']}
-                    />
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <Tooltip />
-                    <Legend />
-                    {lines}
-                </LineChart>
-            </ResponsiveContainer>
+            <div>
+                <div className="report-item">
+                    <div className="is-clearfix">
+                        <h5 className="subtitle is-pulled-left report-item__title">Stats</h5>
+                        <div className="is-pulled-right">
+                            <EventSelector
+                                events={events}
+                                selectedEvent={this.state.selectedEvent}
+                                onEventChange={this.onEventChange}
+                            />
+                        </div>
+                    </div>
+                    <div className="report-item__content">
+                        <VariationStats
+                            statsApiStatus={this.props.statsApiStatus}
+                            variations={this.props.variations}
+                            variationStats={this.props.variationStats}
+                            selectedEvent={this.state.selectedEvent}
+                        />
+                    </div>
+                </div>
+                <div className="report-item">
+                    <div className="is-clearfix">
+                        <h5 className="subtitle is-pulled-left report-item__title">Graph</h5>
+                        <div className="is-pulled-right">
+                            <div className="control is-grouped">
+                                <GranularitySelector
+                                    selectedGranularity={this.props.graphGranularity}
+                                    onGranularityChange={this.onGranularityChange}
+                                />
+                                <EventSelector
+                                    events={events}
+                                    selectedEvent={this.state.selectedEvent}
+                                    onEventChange={this.onEventChange}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                    <div className="report-item__content">
+                        <EventVariationLineGraph
+                            timelineApiStatus={this.props.timelineApiStatus}
+                            expTimeline={this.props.expTimeline}
+                            selectedEvent={this.state.selectedEvent}
+                            variations={this.props.variations}
+                        />
+                    </div>
+                </div>
+            </div>
         );
     }
 }

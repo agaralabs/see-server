@@ -33,7 +33,7 @@ const initialState = {
         isFetching: false,
         errors: null
     },
-    variationEventsMapping: {},
+    variationStats: {},
     expTimelineMapping: {}
 };
 
@@ -41,7 +41,7 @@ const initialState = {
 export default (state = initialState, action) => {
     let statsApiStatus;
     let timelineApiStatus;
-    let variationEventsMapping;
+    let variationStats;
     let expTimelineMapping;
 
 
@@ -73,12 +73,12 @@ export default (state = initialState, action) => {
 
 
         case ActionConstants.UPDATE_VARIATION_EVENTS_MAPPING:
-            variationEventsMapping = {...state.variationEventsMapping};
-            variationEventsMapping[action.variationId] = action.events;
+            variationStats = {...state.variationStats};
+            variationStats[action.variationId] = action.events;
 
             return {
                 ...state,
-                variationEventsMapping
+                variationStats
             };
 
 
