@@ -457,7 +457,7 @@ app.get('/experiments/:experiment_id/stats/counts', wrap(function *(req, res, ne
     });
     yield tasks;
     addTestStatistics(varcounts)
-    res.json({ data: { variations: varcounts } });
+    res.json({ data: { counts: varcounts } });
 }));
 
 // Compares control and variation
@@ -562,7 +562,7 @@ app.get('/experiments/:experiment_id/stats/timeline/:from/:to/:granularity', wra
 
     yield tasks;
 
-    res.json({ data: { variations: vartimelines } });
+    res.json({ data: { timelines: vartimelines } });
 }));
 
 function serialize(dict) {
