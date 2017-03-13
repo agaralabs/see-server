@@ -648,6 +648,11 @@ app.get('/allocate', wrap(function* (req, res) {
     res.json({ data: { experiments: experiments, serialized : serialize(dict) } });
 }));
 
+app.use('/track', wrap(function* (req, res) {
+    console.log('Tracked', req.query);
+    res.sendStatus(200);
+}));
+
 app.use(function (err, req, res, next) {
     console.error(err.stack);
     res.status(500);
