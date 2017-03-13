@@ -18,10 +18,19 @@ message VariationT {
     bool     is_control             =  4;
     double   split_percent          =  5;
     bool     is_deleted             =  6;
-    repeated MapT unique_counts     =  7;
-    repeated TimelineItemT timeline =  8;
-    uint32   create_time            =  9;
-    uint32   update_time            = 10;
+    uint32   create_time            =  7;
+    uint32   update_time            =  8;
+}
+
+message VariationTimelineT {
+    uint32   id                     =  1;
+    repeated TimelineItemT timeline =  2;
+}
+
+message VariationCountT {
+    uint32   id                     =  1;
+    bool     is_control             =  2;
+    repeated MapT unique_counts     =  3;
 }
 
 message ExperimentT {
