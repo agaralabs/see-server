@@ -56,63 +56,29 @@ function renderGraph(graphData, variations, colors) {
 }
 
 
-/**
- * Renders list of events against the graph
- *
- * @param  {Array} events
- * @param  {String} selectedEvent
- * @param  {Function} onClick
- *
- * @return {ReactElement}
- */
-function renderEventsList(events, selectedEvent, onClick) {
-    return (
-        <div>
-            <h5 className="subtitle events-holder__title">Events</h5>
-            <ul className="events-holder__list">
-                {
-                    events.map((e, i) => {
-                        const itemClasses = ['events-holder__list__item'];
-
-                        if (e === selectedEvent) {
-                            itemClasses.push('events-holder__list__item--active');
-                        }
-
-                        return (
-                            <li
-                                key={i}
-                                data-event={e}
-                                onClick={onClick}
-                                className={itemClasses.join(' ')}
-                            >
-                                {e}
-                            </li>
-                        );
-                    })
-                }
-            </ul>
-        </div>
-    );
-}
-
-
 export default function (props) {
     if (props.timelineApiStatus.isFetching) {
         return <Loader />;
     }
 
     if (props.timelineApiStatus.errors) {
-        return 'Some error occured';
+        return <div className="has-text-centered">Some error occured</div>;
     }
 
     if (!props.expTimeline) {
-        return 'No data for reports to show';
+        return <div className="has-text-centered">No data for reports to show</div>;
     }
 
+    if (!props.selectedEvent) {
+        return <div className="has-text-centered">Please select an event for which the graph needs to be shown</div>;
+    }
 
     const colors = Helpers.getColors();
     const graphData = props.expTimeline.eventTimeline[props.selectedEvent];
 
+    if (!graphData) {
+        return <div className="has-text-centered">{`No reports present for event - ${props.selectedEvent}`}</div>;
+    }
 
     return (
         <div className="graph-holder">

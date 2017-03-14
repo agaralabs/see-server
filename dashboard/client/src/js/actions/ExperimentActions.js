@@ -158,3 +158,19 @@ export function updateExperiment(experiment) {
             });
     };
 }
+
+
+export function deleteExperiment(expId) {
+    return (dispatch) => {
+        dispatch(_updateExperimentApiState(true));
+
+        return ExperimentApi.deleteExperiment(expId)
+            .then(res => {
+                dispatch(_updateExperimentApiState(false));
+            })
+            .catch(err => {
+                console.error(err);
+                dispatch(_updateExperimentApiState(false, [err]));
+            });
+    };
+}

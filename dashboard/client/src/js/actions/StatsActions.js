@@ -60,7 +60,7 @@ function _updateVariationEventsMapping(variationId, events) {
  * Action creator for updating the experiment-timeline mapping report
  *
  * @param  {Number} experimentId
- * @param  {Object} timelineData
+ * @param  {Object} timeline
  * `
  * {
  *     '<variationId>': {
@@ -80,6 +80,7 @@ function _updateVariationEventsMapping(variationId, events) {
  *     }
  * }
  * `
+ *
  * @return {Object}
  */
 function _updateExpTimelineMapping(experimentId, timeline) {

@@ -22,8 +22,8 @@ const statTypes = [
 ];
 
 
-function getTableHeaderLabels(variations, selectedEvent) {
-    const labels = [selectedEvent];
+function getTableHeaderLabels(variations) {
+    const labels = ['Variations'];
 
     statTypes.forEach(v => {
         labels.push(v.text);
@@ -75,7 +75,7 @@ export default function (props) {
         return 'Some error occured';
     }
 
-    const tableHeaders = getTableHeaderLabels(props.variations, props.selectedEvent);
+    const tableHeaders = getTableHeaderLabels(props.variations);
     const tableItems = getTableRowItems(
         props.variations,
         props.variationStats,

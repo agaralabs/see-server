@@ -3,6 +3,7 @@ import EventVariationLineGraph from './EventVariationLineGraph';
 import VariationStats from './VariationStats';
 import EventSelector from './EventSelector';
 import GranularitySelector from './GranularitySelector';
+import DateRangeSelector from './DateRangeSelector';
 
 
 export default class ExperimentTimeline extends PureComponent {
@@ -10,7 +11,7 @@ export default class ExperimentTimeline extends PureComponent {
         super(props);
 
         this.state = {
-            selectedEvent: 'srp_card_cta_click',
+            selectedEvent: null,
             data: [
                 {
                     name: 'Page A',
@@ -90,15 +91,17 @@ export default class ExperimentTimeline extends PureComponent {
     render() {
         const events = this.getUniqueEvents();
 
+        const selectedEvent = this.state.selectedEvent || events[0];
+
         return (
-            <div>
+            <div className="experiment-reports">
                 <div className="report-item">
                     <div className="is-clearfix">
                         <h5 className="subtitle is-pulled-left report-item__title">Stats</h5>
                         <div className="is-pulled-right">
                             <EventSelector
                                 events={events}
-                                selectedEvent={this.state.selectedEvent}
+                                selectedEvent={selectedEvent}
                                 onEventChange={this.onEventChange}
                             />
                         </div>
@@ -108,7 +111,7 @@ export default class ExperimentTimeline extends PureComponent {
                             statsApiStatus={this.props.statsApiStatus}
                             variations={this.props.variations}
                             variationStats={this.props.variationStats}
-                            selectedEvent={this.state.selectedEvent}
+                            selectedEvent={selectedEvent}
                         />
                     </div>
                 </div>
@@ -116,14 +119,23 @@ export default class ExperimentTimeline extends PureComponent {
                     <div className="is-clearfix">
                         <h5 className="subtitle is-pulled-left report-item__title">Graph</h5>
                         <div className="is-pulled-right">
-                            <div className="control is-grouped">
+                            <div className="control is-grouped graph-inputs">
+                                <DateRangeSelector
+                                    fromDate={this.props.graphFromDate}
+                                    toDate={this.props.graphToDate}
+                                    fromMinDate={this.props.graphFromMinDate}
+                                    fromMaxDate={this.props.graphFromMaxDate}
+                                    toMinDate={this.props.graphToMinDate}
+                                    toMaxDate={this.props.graphToMaxDate}
+                                    onDateChange={this.props.onGraphDateChange}
+                                />
                                 <GranularitySelector
                                     selectedGranularity={this.props.graphGranularity}
                                     onGranularityChange={this.onGranularityChange}
                                 />
                                 <EventSelector
                                     events={events}
-                                    selectedEvent={this.state.selectedEvent}
+                                    selectedEvent={selectedEvent}
                                     onEventChange={this.onEventChange}
                                 />
                             </div>
@@ -133,7 +145,7 @@ export default class ExperimentTimeline extends PureComponent {
                         <EventVariationLineGraph
                             timelineApiStatus={this.props.timelineApiStatus}
                             expTimeline={this.props.expTimeline}
-                            selectedEvent={this.state.selectedEvent}
+                            selectedEvent={selectedEvent}
                             variations={this.props.variations}
                         />
                     </div>

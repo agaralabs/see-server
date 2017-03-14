@@ -84,19 +84,18 @@ function getVariationEditMode(variation, index, onVariationInfoChange, onVariati
                         <button
                             type="button"
                             onClick={onVariationSave}
-                            className="button is-small is-info is-outlined"
+                            className="button is-small is-primary"
                         >
                             Save
                         </button>
                     </div>
                     <div className="control">
-                        <button
-                            type="button"
+                        <a
                             onClick={onCancelVariationAddEdit}
-                            className="button is-small is-danger is-outlined"
+                            className="is-info"
                         >
                             Cancel
-                        </button>
+                        </a>
                     </div>
                 </div>
             </td>
@@ -144,12 +143,12 @@ export default function (props) {
 
     return (
         <section className="experiment-variations">
-            <div className="is-clearfix">
+            <div className="experiment-variations__header is-clearfix">
                 <button
                     type="button"
                     data-action="create"
                     onClick={props.onVariationAddEdit}
-                    className="button is-info is-small is-outlined is-pulled-right"
+                    className="button is-primary is-small is-pulled-right"
                 >
                     Create Variation
                 </button>
@@ -157,10 +156,10 @@ export default function (props) {
             <table className="table">
                 <thead>
                     <tr>
-                        <th width="10%">#</th>
+                        <th width="5%">#</th>
                         <th>Variation Name</th>
-                        <th width="10%">Split %</th>
-                        <th width="25%">Actions</th>
+                        <th width="25%">Split %</th>
+                        <th width="20%">Actions</th>
                     </tr>
                 </thead>
                 <tbody>{listItems}</tbody>

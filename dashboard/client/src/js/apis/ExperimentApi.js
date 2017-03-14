@@ -20,5 +20,10 @@ export default {
 
     updateExperiment: (expId, params) => {
         return BaseApi.put(`${config.apiEndpoints.experimentBase}/${expId}`, params);
+    },
+
+
+    deleteExperiment: (expId) => {
+        return BaseApi.delete(`${config.apiEndpoints.experimentBase}/${expId}`);
     }
 };

@@ -2,17 +2,31 @@
     .experiment-details {
         .item {
             display: flex;
-            padding: 10px;
+            padding: 1em 1.5em;
 
             &__name {
                 width: 150px;
+                font-weight: 300;
             }
 
-            &:not(:last-of-type) {
-                border-bottom: 1px solid $grey-lighter;
+            &__value {
+                font-weight: 600;
             }
         }
     }
+
+
+    .experiment-variations {
+        &__header {
+            padding: 1em 1.5em;
+        }
+    }
+
+
+    .experiment-reports {
+        padding: 1em 1.5em;
+    }
+
 
     .report-item {
         padding: 30px 0 60px;
@@ -22,33 +36,12 @@
         }
     }
 
-    // .events-graph-container {
-    //     margin: 10px;
-    //     border: 1px solid $white-ter;
-    //     border-radius: $radius;
 
-    //     .events-holder {
-    //         background-color: $white-ter;
-
-    //         &__title {
-    //             margin: 0;
-    //             padding: 10px 15px;
-    //             color: #fff;
-    //             background-color: $grey;
-    //         }
-
-    //         &__list {
-    //             &__item {
-    //                 padding: 10px 15px;
-    //                 cursor: pointer;
-
-    //                 &--active {
-    //                     background-color: #fff;
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
+    .graph-inputs {
+        .control-label {
+            margin: 0 .5em 0 1.5em;
+        }
+    }
 
     .stats-table {
         tr td:first-child, tr th:not(:first-child) {

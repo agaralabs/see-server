@@ -32,12 +32,6 @@ export default class Experiment {
 
 
         /**
-         * @type {?String}
-         */
-        this.metricName = exp.metric_name || null;
-
-
-        /**
          * @type {?Date}
          */
         this.createTime = exp.create_time ? new Date(exp.create_time) : null;
@@ -56,8 +50,7 @@ export default class Experiment {
             name: exp.name,
             version: exp.version,
             exposure_percent: exp.exposure,
-            is_active: exp.isActive,
-            metric_name: exp.metricName
+            is_active: exp.isActive
         };
     }
 }

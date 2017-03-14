@@ -117,9 +117,11 @@ class ExperimentAddEdit extends Component {
 
     render() {
         return (
-            <div className="container page page-experiment">
-                {this.renderPageTitle()}
-                {this.renderExperimentForm()}
+            <div className="columns page page-expedit">
+                <div className="column is-4 form-container">
+                    {this.renderPageTitle()}
+                    {this.renderExperimentForm()}
+                </div>
             </div>
         );
     }

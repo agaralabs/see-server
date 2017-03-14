@@ -1,9 +1,11 @@
 import React, {PureComponent} from 'react';
 import {bindActionCreators} from 'redux';
 import {connect} from 'react-redux';
+import {History} from '../../utils/router';
 import {ExperimentActions, VariationActions, StatsActions} from '../../actions';
 import {VariationModel} from '../../models';
 import {Modal} from '../modules/base';
+import ExperimentDetails from '../modules/ExperimentDetails';
 import VariationsList from '../modules/VariationsList';
 import ExperimentHeader from '../modules/ExperimentHeader';
 import ExperimentTimeline from '../modules/ExperimentTimeline';
@@ -18,11 +20,15 @@ class ExperimentPage extends PureComponent {
         const previousTime = new Date(new Date().setHours(currentTime.getHours() - (24 * 40)));
 
         this.state = {
-            activeTab: 'reports',
+            activeTab: 'details',
             selectedVariation: null,
             isVarEditModeOn: false,
             graphFromDate: previousTime,
             graphToDate: currentTime,
+            graphFromMinDate: null,
+            graphFromMaxDate: new Date(),
+            graphToMinDate: previousTime,
+            graphToMaxDate: currentTime,
             graphGranularity: 'daily',
             shouldConfirmVarDeletion: false,
             shouldConfirmExpDeletion: false
@@ -31,7 +37,9 @@ class ExperimentPage extends PureComponent {
         this.onExperimentDelete = this.onExperimentDelete.bind(this);
         this.onExperimentStatusToggle = this.onExperimentStatusToggle.bind(this);
         this.onVariationDelete = this.onVariationDelete.bind(this);
+        this.onExperimentDeletionModalClose = this.onExperimentDeletionModalClose.bind(this);
         this.onVariationModalClose = this.onVariationModalClose.bind(this);
+        this.deleteExperiment = this.deleteExperiment.bind(this);
         this.deleteVariation = this.deleteVariation.bind(this);
         this.onTabChange = this.onTabChange.bind(this);
         this.onVariationAddEdit = this.onVariationAddEdit.bind(this);
@@ -39,6 +47,7 @@ class ExperimentPage extends PureComponent {
         this.onVariationSave = this.onVariationSave.bind(this);
         this.onCancelVariationAddEdit = this.onCancelVariationAddEdit.bind(this);
         this.onGraphGranularityChange = this.onGraphGranularityChange.bind(this);
+        this.onGraphDateChange = this.onGraphDateChange.bind(this);
     }
 
 
@@ -104,12 +113,32 @@ class ExperimentPage extends PureComponent {
     }
 
 
+    // Actually deletes the experiment by making an API call
+    deleteExperiment() {
+        this.props.actions.deleteExperiment(this.props.experimentId)
+            .then(() => {
+                History.replace('/dashboard');
+            });
+
+        this.setState({
+            shouldConfirmExpDeletion: false
+        });
+    }
+
+
     // Closing the modal & removing the variation id
     // which was set on state
     onVariationModalClose() {
         this.setState({
             selectedVariation: null,
             shouldConfirmVarDeletion: false
+        });
+    }
+
+
+    onExperimentDeletionModalClose() {
+        this.setState({
+            shouldConfirmExpDeletion: false
         });
     }
 
@@ -203,6 +232,16 @@ class ExperimentPage extends PureComponent {
     }
 
 
+    onGraphDateChange(dates) {
+        this.setState({
+            graphFromDate: dates.fromDate,
+            graphToDate: dates.toDate,
+            graphFromMaxDate: dates.toDate,
+            graphToMinDate: dates.fromDate
+        }, this.fetchGraphInformation);
+    }
+
+
     renderExperimentError() {
         switch (this.props.experimentErrorType) {
             case 'NO_CONTROL':
@@ -261,7 +300,7 @@ class ExperimentPage extends PureComponent {
         ];
 
         return (
-            <div className="tabs is-boxed">
+            <div className="tabs">
                 <ul>
                     {
                         tabs.map(t => {
@@ -304,28 +343,9 @@ class ExperimentPage extends PureComponent {
 
     renderExpDetails() {
         return (
-            <section className="experiment-details">
-                <div className="item">
-                    <div className="item__name">Id</div>
-                    <div className="item__value">{this.props.experiment.id}</div>
-                </div>
-                <div className="item">
-                    <div className="item__name">Version</div>
-                    <div className="item__value">{this.props.experiment.version}</div>
-                </div>
-                <div className="item">
-                    <div className="item__name">Exposure</div>
-                    <div className="item__value">{this.props.experiment.exposure}%</div>
-                </div>
-                <div className="item">
-                    <div className="item__name">Metric name</div>
-                    <div className="item__value">{this.props.experiment.metricName}</div>
-                </div>
-                <div className="item">
-                    <div className="item__name">Created On</div>
-                    <div className="item__value">{Helpers.formatDate(this.props.experiment.createTime)}</div>
-                </div>
-            </section>
+            <ExperimentDetails
+                experiment={this.props.experiment}
+            />
         );
     }
 
@@ -359,6 +379,11 @@ class ExperimentPage extends PureComponent {
                 graphGranularity={this.state.graphGranularity}
                 graphFromDate={this.state.graphFromDate}
                 graphToDate={this.state.graphToDate}
+                graphFromMinDate={this.state.graphFromMinDate}
+                graphFromMaxDate={this.state.graphFromMaxDate}
+                graphToMinDate={this.state.graphToMinDate}
+                graphToMaxDate={this.state.graphToMaxDate}
+                onGraphDateChange={this.onGraphDateChange}
                 onGraphGranularityChange={this.onGraphGranularityChange}
             />
         );
@@ -400,6 +425,39 @@ class ExperimentPage extends PureComponent {
     }
 
 
+    renderExperimentDeletionDialog() {
+        if (!this.state.shouldConfirmExpDeletion) {
+            return null;
+        }
+
+        return (
+            <Modal
+                onClose={this.onExperimentDeletionModalClose}
+            >
+                <div className="dialog">
+                    <div className="dialog__content">
+                        Are you sure you want to delete Experiment "<b>{this.props.experiment.name}</b>"?
+                    </div>
+                    <div className="dialog__action">
+                        <button
+                            onClick={this.deleteExperiment}
+                            className="button is-primary dialog__action__item"
+                        >
+                            Yes
+                        </button>
+                        <button
+                            onClick={this.onExperimentDeletionModalClose}
+                            className="button is-danger dialog__action__item"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </Modal>
+        );
+    }
+
+
     render() {
         if (this.props.apiState.isFetching) {
             return (
@@ -425,10 +483,11 @@ class ExperimentPage extends PureComponent {
                 <div className="container page page-experiment">
                     {this.renderExperimentError()}
                     {this.renderExperimentHeader()}
-                    <div className="box">
+                    <div className="box is-paddingless">
                         {this.renderTabs()}
                         {this.renderTabContent()}
                         {this.renderVariationDeletionDialog()}
+                        {this.renderExperimentDeletionDialog()}
                     </div>
                 </div>
             );
@@ -456,6 +515,8 @@ export default connect(
 
             return mapping;
         }, {});
+
+        console.log(variationStats, expTimeline, statsApiStatus, timelineApiStatus);
 
         return {
             experimentId,

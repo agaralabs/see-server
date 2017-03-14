@@ -28,18 +28,6 @@ export default function ExperimentForm(props) {
                 />
             </div>
 
-            <label className="label">Metric Name</label>
-            <div className="control">
-                <input
-                    type="text"
-                    name="metricName"
-                    value={props.experiment.metricName || ''}
-                    onChange={props.onExperimentInfoChange}
-                    placeholder="book-btn-click"
-                    className="input"
-                />
-            </div>
-
             <div className="control is-grouped">
                 <div className="control">
                     <button

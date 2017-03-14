@@ -18,7 +18,7 @@ function getExperimentStatusButton(experiment, errorType, onStatusToggle) {
             type="button"
             disabled={isDisabled}
             onClick={onStatusToggle}
-            className="button is-primary"
+            className="button is-warning"
         >
             {btnTxt}
         </button>

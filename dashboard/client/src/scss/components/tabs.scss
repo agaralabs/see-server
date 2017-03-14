@@ -1,0 +1,11 @@
+// `.tabs` is a bulma component
+
+.tabs {
+    a {
+        padding: 1em 1.5em;
+    }
+
+    &:not(:last-child) {
+        margin-bottom: 0;
+    }
+}

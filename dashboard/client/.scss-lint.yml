@@ -305,7 +305,7 @@ linters:
   PropertyUnits:
     enabled: true
     global: [
-      'ch', 'ex', 'rem',                       # Font-relative lengths
+      'ch', 'ex', 'rem', 'em',                 # Font-relative lengths
       'cm', 'in', 'mm', 'pc', 'pt', 'px', 'q', # Absolute lengths
       'vh', 'vw', 'vmin', 'vmax',              # Viewport-percentage lengths
       'deg', 'grad', 'rad', 'turn',            # Angle

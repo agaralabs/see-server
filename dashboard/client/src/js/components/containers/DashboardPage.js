@@ -29,7 +29,7 @@ class DashboardPage extends Component {
                     </Link>
                 </div>
 
-                <div className="box">
+                <div className="box is-paddingless">
                     <table className="table">
                         <thead>
                             <tr>

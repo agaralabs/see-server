@@ -1,0 +1,21 @@
+// `.table` is an bulma component
+
+.table {
+    margin: 0;
+    border-radius: $radius;
+
+    thead th {
+        border-width: 0;
+        background-color: lighten($grey-lighter, 10%);
+    }
+
+    td, th {
+        padding: 1em;
+    }
+
+    &.is-bordered {
+        thead th {
+            border-width: 1px;
+        }
+    }
+}

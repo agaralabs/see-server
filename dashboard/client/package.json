@@ -7,6 +7,7 @@
     "bulma": "^0.3.2",
     "fecha": "^2.3.0",
     "object-clean": "^0.1.0",
+    "pikaday": "^1.5.1",
     "react": "^15.4.2",
     "react-dom": "^15.4.2",
     "react-redux": "^5.0.3",
