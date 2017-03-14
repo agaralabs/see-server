@@ -40,6 +40,14 @@ function getLoaders() {
                 fallbackLoader: 'style-loader',
                 loader: ['css-loader', 'postcss-loader', 'sass-loader']
             })
+        },
+        {
+            test: [/\.bmp$/, /\.gif$/, /\.jpe?g$/, /\.png$/, /\.svg$/],
+            loader: 'url-loader',
+            options: {
+                limit: 10000,
+                name: '/img/[name].[hash:8].[ext]'
+            }
         }
     ];
 }
