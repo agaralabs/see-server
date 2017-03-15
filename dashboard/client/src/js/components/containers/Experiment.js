@@ -516,7 +516,6 @@ export default connect(
             return mapping;
         }, {});
 
-        console.log(variationStats, expTimeline, statsApiStatus, timelineApiStatus);
 
         return {
             experimentId,

@@ -65,7 +65,7 @@ class DashboardPage extends Component {
                                                     </div>
                                                     <div className="control">
                                                         <Link
-                                                            to={`/experiments/${exp.id}/update`}
+                                                            to={`/experiments/${exp.id}/edit`}
                                                             className="button is-small is-info is-outlined"
                                                         >
                                                             Edit
