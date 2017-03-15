@@ -2,6 +2,7 @@ var co        = require('co');
 var config    = require('./config');
 var app       = require('./expressapp');
 var container = require('./container');
+var logger    = require('./logger');
 
 // rebuild cache
 co(function *() {
@@ -14,11 +15,11 @@ co(function *() {
         };
     });
     yield tasks;
-    console.log('rebuilt experiment cache');
+    logger.info('rebuilt experiment cache');
 })
     .then(function () {
         // start server
         app.listen(config.app.port, function () {
-            console.log('listening on port: %d', config.app.port);
+            logger.info('listening on port: %d', config.app.port);
         });
     });

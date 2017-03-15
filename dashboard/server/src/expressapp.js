@@ -7,6 +7,7 @@ var moment    = require('moment-timezone');
 var models    = require('./models');
 var container = require('./container');
 var config    = require('./config');
+var logger    = require('./logger');
 var app       = express();
 
 app.use(bp.json());
@@ -650,12 +651,12 @@ app.get('/allocate', wrap(function* (req, res) {
 }));
 
 app.use('/track', function (req, res) {
-    console.log('Tracked', req.query);
+    logger.track(req);
     res.sendStatus(200);
 });
 
-app.use(function (err, req, res) {
-    console.error(err.stack);
+app.use(function (err, req, res, _next) {
+    logger.error(err.stack);
     res.status(500);
     res.json({
         err_code : 'UNKNOWN',
