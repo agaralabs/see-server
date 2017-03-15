@@ -7,10 +7,10 @@ var VariationsDm  = require('./datamappers/variations');
 var Stats         = require('./datamappers/stats');
 
 var map = {
-    'experiments_datamapper' : new ExperimentsDm(mysqlpool),
-    'experiments_cachemapper': new ExperimentsCm(redisclient),
-    'variations_datamapper'  : new VariationsDm(mysqlpool),
-    'stats'                  : new Stats(pgpool)
+    'experiments_datamapper'  : new ExperimentsDm(mysqlpool),
+    'experiments_cachemapper' : new ExperimentsCm(redisclient),
+    'variations_datamapper'   : new VariationsDm(mysqlpool),
+    'stats'                   : new Stats(pgpool)
 };
 
 module.exports = {

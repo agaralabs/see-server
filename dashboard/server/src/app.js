@@ -7,7 +7,7 @@ var container = require('./container');
 co(function *() {
     yield container.get('experiments_cachemapper').purge();
     var experiments = yield container.get('experiments_datamapper').fetchAll();
-    tasks = experiments.map(function (exp) {
+    var tasks = experiments.map(function (exp) {
         return function *() {
             exp.variations = yield container.get('variations_datamapper').fetchByExperimentId(exp.id);
             yield container.get('experiments_cachemapper').reloadExperiment(exp);

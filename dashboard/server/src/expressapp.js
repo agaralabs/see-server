@@ -18,16 +18,17 @@ app.use(function(req, res, next) {
 
     // intercept OPTIONS method
     if ('OPTIONS' == req.method) {
-      res.send(200);
+        res.send(200);
     }
     else {
-      next();
+        next();
     }
 });
 
 app.get('/experiments', wrap(function* (req, res) {
     var experiments = yield container.get('experiments_datamapper').fetchAll();
-    experiments     = experiments.filter(function (exp) {
+
+    experiments = experiments.filter(function (exp) {
         return !exp.is_deleted;
     });
 
@@ -43,8 +44,8 @@ app.post('/experiments', wrap(function* (req, res) {
     if (!experiment.name) {
         res.status(400);
         res.json({
-            err_code: 'BAD_DATA',
-            err_msg : 'Missing: experiment name'
+            err_code : 'BAD_DATA',
+            err_msg  : 'Missing: experiment name'
         });
         return;
     }
@@ -54,10 +55,10 @@ app.post('/experiments', wrap(function* (req, res) {
 
     // Add control variation
     var vrtn = new models.VariationT({
-        name         : 'CONTROL',
-        split_percent: 50,
-        is_control   : true,
-        experiment_id: id
+        name          : 'CONTROL',
+        split_percent : 50,
+        is_control    : true,
+        experiment_id : id
     });
     yield container.get('variations_datamapper').insert(vrtn);
 
@@ -136,8 +137,8 @@ app.put('/experiments/:id', wrap(function *(req, res, next) {
     if (!patch.name) {
         res.status(400);
         res.json({
-            err_code: 'BAD_DATA',
-            err_msg : 'Missing: experiment name'
+            err_code : 'BAD_DATA',
+            err_msg  : 'Missing: experiment name'
         });
         return;
     }
@@ -239,8 +240,8 @@ app.post('/experiments/:id/variations', wrap(function *(req, res, next) {
     if (!variation.name) {
         res.status(400);
         res.json({
-            err_code: 'BAD_DATA',
-            err_msg : 'Missing: variation name'
+            err_code : 'BAD_DATA',
+            err_msg  : 'Missing: variation name'
         });
         return;
     }
@@ -319,8 +320,8 @@ app.put('/experiments/:experiment_id/variations/:variation_id', wrap(function *(
     if (!variation.name) {
         res.status(400);
         res.json({
-            err_code: 'BAD_DATA',
-            err_msg : 'Missing: variation name'
+            err_code : 'BAD_DATA',
+            err_msg  : 'Missing: variation name'
         });
         return;
     }
@@ -381,8 +382,8 @@ app.delete('/experiments/:experiment_id/variations/:variation_id', wrap(function
     if (existing.is_control) {
         res.status(403);
         res.json({
-            err_code: 'FORBIDDEN',
-            err_msg : 'Cannot delete a CONTROL variation'
+            err_code : 'FORBIDDEN',
+            err_msg  : 'Cannot delete a CONTROL variation'
         });
         return;
     }
@@ -428,83 +429,83 @@ app.get('/experiments/:experiment_id/stats/counts', wrap(function *(req, res, ne
         ).then(function (counts) {
             var varcount = new models.VariationCountT();
             // remove participation from "counts" and add it to "variation"
-            var participation = 0
-            var participationIndex = -1
+            var participation = 0;
+            var participationIndex = -1;
             for (var i = 0; i < counts.length; i++) {
-              if (counts[i].key == "participation") {
-                participation = counts[i].value
-                participationIndex = i
-                break;
-              }
+                if (counts[i].key == "participation") {
+                    participation = counts[i].value;
+                    participationIndex = i;
+                    break;
+                }
             }
             // remove participation from counts array
             counts.splice(participationIndex, 1);
 
             // add rate = value / parition to each of the counts
             counts.map(function (row) {
-              var rate = 0;
-              if (participation > 0) {
-                rate = row.value / participation
-              }
-              row.rate = rate;
+                var rate = 0;
+                if (participation > 0) {
+                    rate = row.value / participation;
+                }
+                row.rate = rate;
             });
             varcount.unique_counts = counts;
             // add participation at "variation" level
             varcount.id = vrtn.id;
             varcount.is_control = vrtn.is_control;
-            varcounts.push(varcount)
+            varcounts.push(varcount);
         });
     });
     yield tasks;
-    addTestStatistics(varcounts)
+    addTestStatistics(varcounts);
     res.json({ data: { counts: varcounts } });
 }));
 
 // Compares control and variation
 // For formulas https://en.wikipedia.org/wiki/Statistical_hypothesis_testing
 function addTestStatistics(variations) {
-  for (var i = 0; i < variations.length; i++) {
-    if (variations[i].is_control) {
-      for (var j = 0; j < variations.length; j++) {
-        if (!variations[j].is_control && i != j) {
-          compareControlVariation(variations[i], variations[j], "binomial")
+    for (var i = 0; i < variations.length; i++) {
+        if (variations[i].is_control) {
+            for (var j = 0; j < variations.length; j++) {
+                if (!variations[j].is_control && i != j) {
+                    compareControlVariation(variations[i], variations[j], "binomial");
+                }
+            }
+            break;
         }
-      }
-      break;
     }
-  }
 }
 
 function compareControlVariation(control, variation, distribution) {
-  control.unique_counts.map(function (ctrl_count) {
-    variation.unique_counts.map(function (var_count) {
-      if (ctrl_count.key == var_count.key) {
-        if (distribution == "binomial") {
-          var zscore = getZScore(ctrl_count.rate, control.participation,
-            var_count.rate, variation.participation)
-          var_count.zscore = zscore
-          var_count.pvalue = getPValue(zscore)
-        }
-      }
+    control.unique_counts.map(function (ctrl_count) {
+        variation.unique_counts.map(function (var_count) {
+            if (ctrl_count.key == var_count.key) {
+                if (distribution == "binomial") {
+                    var zscore = getZScore(ctrl_count.rate, control.participation,
+            var_count.rate, variation.participation);
+                    var_count.zscore = zscore;
+                    var_count.pvalue = getPValue(zscore);
+                }
+            }
+        });
     });
-  });
 }
 
 function getZScore(ctrl_value, ctrl_count, var_value, var_count) {
   // standard deviation formula from https://en.wikipedia.org/wiki/Binomial_distribution#Normal_approximation
   // zscore formula from https://en.wikipedia.org/wiki/Statistical_hypothesis_testing
   // Two-proportion z-test, pooled for H0: p1 = p2
-  var ctrl_std_err = Math.sqrt(ctrl_value * (1 - ctrl_value) / ctrl_count);
-  var var_std_err = Math.sqrt(var_value * (1 - var_value) / var_count);
-  return (ctrl_value - var_value) / Math.sqrt(Math.pow(ctrl_std_err, 2) + Math.pow(var_std_err, 2));
+    var ctrl_std_err = Math.sqrt(ctrl_value * (1 - ctrl_value) / ctrl_count);
+    var var_std_err = Math.sqrt(var_value * (1 - var_value) / var_count);
+    return (ctrl_value - var_value) / Math.sqrt(Math.pow(ctrl_std_err, 2) + Math.pow(var_std_err, 2));
 }
 
 function cdfNormal(x, mean, std_deviation) {
     return (1 - math.erf((mean - x ) / (Math.sqrt(2) * std_deviation))) / 2;
-};
+}
 
 function getPValue(x) {
-  return cdfNormal(x, 0, 1)
+    return cdfNormal(x, 0, 1);
 }
 
 app.get('/experiments/:experiment_id/stats/timeline/:from/:to/:granularity', wrap(function *(req, res, next) {
@@ -525,11 +526,11 @@ app.get('/experiments/:experiment_id/stats/timeline/:from/:to/:granularity', wra
     try {
         from = moment(req.params.from);
         to = moment(req.params.to);
-    } catch(e) {
+    } catch (e) {
         res.status(400);
         res.json({
-            err_code: 'BAD_DATA',
-            err_msg : 'Invalid from or to date'
+            err_code : 'BAD_DATA',
+            err_msg  : 'Invalid from or to date'
         });
         return;
     }
@@ -537,8 +538,8 @@ app.get('/experiments/:experiment_id/stats/timeline/:from/:to/:granularity', wra
     if (to.unix() < from.unix()) {
         res.status(400);
         res.json({
-            err_code: 'BAD_DATA',
-            err_msg : 'To date cannot be less than from date'
+            err_code : 'BAD_DATA',
+            err_msg  : 'To date cannot be less than from date'
         });
         return;
     }
@@ -554,7 +555,7 @@ app.get('/experiments/:experiment_id/stats/timeline/:from/:to/:granularity', wra
             moment(req.params.to),
             req.params.granularity
         ).then(function (items) {
-            vartimeline.id = vrtn.id
+            vartimeline.id = vrtn.id;
             vartimeline.timeline = items;
             vartimelines.push(vartimeline);
         });
@@ -645,28 +646,28 @@ app.get('/allocate', wrap(function* (req, res) {
         dict[exp.id] = exp;
     });
 
-    res.json({ data: { experiments: experiments, serialized : serialize(dict) } });
+    res.json({ data: { experiments: experiments, serialized: serialize(dict) } });
 }));
 
-app.use('/track', wrap(function* (req, res) {
+app.use('/track', function (req, res) {
     console.log('Tracked', req.query);
     res.sendStatus(200);
-}));
+});
 
-app.use(function (err, req, res, next) {
+app.use(function (err, req, res) {
     console.error(err.stack);
     res.status(500);
     res.json({
-        err_code: 'UNKNOWN',
-        err_msg : 'An unknown error occured'
+        err_code : 'UNKNOWN',
+        err_msg  : 'An unknown error occured'
     });
 });
 
 app.use(function (req, res) {
     res.status(404);
     res.json({
-        err_code: 'NOT_FOUND',
-        err_msg : 'Requested resource not found'
+        err_code : 'NOT_FOUND',
+        err_msg  : 'Requested resource not found'
     });
 });
 

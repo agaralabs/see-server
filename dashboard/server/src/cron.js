@@ -3,7 +3,6 @@ var pg = require('./postgres');
 var moment = require('moment-timezone');
 var shell = require('exec-sh');
 var co = require('co');
-var cosleep = require('co-sleep');
 
 function tlog() {
     console.log();
@@ -16,9 +15,9 @@ function shellex(cmd) {
     return new Promise(function (resolve, reject) {
         shell(cmd, true, function (err, stdout, stderr) {
             var result = {
-                err: err,
-                stdout: stdout,
-                stderr: stderr
+                err    : err,
+                stdout : stdout,
+                stderr : stderr
             };
 
             if (err) {
@@ -42,7 +41,7 @@ init()
 
 function init() {
     return co(function* () {
-        var from, to, result, cmd;
+        var from, to, result, res;
 
         var now = moment();
         var uid = now.format('YYYY/MM/DD/HH_mm_ss');
@@ -70,6 +69,7 @@ function init() {
         else
             res = yield submitToSpark(uid, from, to);
 
+        return res;
     });
 }
 
@@ -85,13 +85,13 @@ function* submitToEMR(uid, from, to) {
 
     // Wait for cluster to terminate
     cmd = 'until aws emr wait cluster-terminated --cluster-id ' + parsed.ClusterId + '; do echo "wait timed out.. trying again"; sleep 2; done';
-    return shellex(cmd);
+    return yield shellex(cmd);
 }
 
 function* submitToSpark(uid, from, to) {
     // Submit job to spark cluster to process nginx records to csv
     var cmd = getSparkCmd(uid, from, to).join(' \\\n');
-    return shellex(cmd);
+    return yield shellex(cmd);
 }
 
 function getEmrCmd(uid, from, to) {

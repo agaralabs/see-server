@@ -1,4 +1,3 @@
-var co     = require('co');
 var models = require('../models');
 
 function ExperimentsCm(client) {

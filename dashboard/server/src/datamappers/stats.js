@@ -24,8 +24,8 @@ Stats.prototype.fetchEventCounts = function (exp_id, version_id, vrtn_id) {
 
         var counts = result.rows.map(function (row) {
             return new models.MapT({
-                key  : row.event_name,
-                value: row.ecount
+                key   : row.event_name,
+                value : row.ecount
             });
         });
 
@@ -37,10 +37,10 @@ Stats.prototype.fetchEventTimeline = function (exp_id, version_id, vrtn_id, from
     var that = this;
 
     var granularity_dict = {
-        'hourly' : 'hour',
-        'daily'  : 'day',
-        'weekly' : 'week',
-        'monthly': 'month'
+        'hourly'  : 'hour',
+        'daily'   : 'day',
+        'weekly'  : 'week',
+        'monthly' : 'month'
     };
 
     return co( function *() {
@@ -64,9 +64,9 @@ Stats.prototype.fetchEventTimeline = function (exp_id, version_id, vrtn_id, from
 
         var items = result.rows.map(function (row) {
             return new models.TimelineItemT({
-                time      : Number(new Date(row.date)),
-                event_name: row.event_name,
-                count     : Number(row.ecount)
+                time       : Number(new Date(row.date)),
+                event_name : row.event_name,
+                count      : Number(row.ecount)
             });
         });
 

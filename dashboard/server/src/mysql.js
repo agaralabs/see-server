@@ -1,11 +1,11 @@
 var config = require('./config');
 var mysql  = require('mysql');
 var pool   = mysql.createPool({
-    connectionLimit: config.mysql.connlimit,
-    host           : config.mysql.host,
-    user           : config.mysql.user,
-    password       : config.mysql.password,
-    database       : config.mysql.database
+    connectionLimit : config.mysql.connlimit,
+    host            : config.mysql.host,
+    user            : config.mysql.user,
+    password        : config.mysql.password,
+    database        : config.mysql.database
 });
 
 function pquery(sql, params) {

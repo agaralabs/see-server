@@ -63,11 +63,12 @@ VariationsDm.prototype.update = function (variation) {
         var sql    = 'UPDATE `variations` SET ? WHERE `id` = ?;';
         var result = yield that.pool.pquery(sql, [
             {
-                name         : variation.name,
-                split_percent: variation.split_percent
+                name          : variation.name,
+                split_percent : variation.split_percent
             },
             variation.id
         ]);
+        return result;
     });
 };
 
@@ -77,6 +78,7 @@ VariationsDm.prototype.delete = function (id) {
     return co(function *() {
         var sql    = 'UPDATE `variations` SET `is_deleted` = 1 WHERE `id` = ?;';
         var result = yield that.pool.pquery(sql, [ id ]);
+        return result;
     });
 };
 

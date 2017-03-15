@@ -65,10 +65,10 @@ ExperimentsDm.prototype.update = function (experiment) {
         var sql    = 'UPDATE `experiments` SET ? WHERE `id` = ?;';
         var result = yield that.pool.pquery(sql, [
             {
-                name            : experiment.name,
-                exposure_percent: experiment.exposure_percent,
-                is_active       : experiment.is_active,
-                metric_name     : experiment.metric_name
+                name             : experiment.name,
+                exposure_percent : experiment.exposure_percent,
+                is_active        : experiment.is_active,
+                metric_name      : experiment.metric_name
             },
             experiment.id
         ]);
