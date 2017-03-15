@@ -481,6 +481,7 @@ function compareControlVariation(control, variation, distribution) {
         variation.unique_counts.map(function (var_count) {
             if (ctrl_count.key == var_count.key) {
                 if (distribution == "binomial") {
+                    console.log(ctrl_count)
                     var zscore = getZScore(ctrl_count.rate, control.participation,
             var_count.rate, variation.participation);
                     var_count.zscore = zscore;
