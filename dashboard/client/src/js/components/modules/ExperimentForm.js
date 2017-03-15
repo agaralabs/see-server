@@ -1,6 +1,15 @@
 import React from 'react';
 
 
+function getError(errors, key) {
+    if (errors && errors[key]) {
+        return <span className="help is-danger">{errors[key]}</span>;
+    }
+
+    return <span className="help is-danger">&nbsp;</span>;
+}
+
+
 export default function ExperimentForm(props) {
     return (
         <form onSubmit={props.onFormSubmit}>
@@ -14,6 +23,7 @@ export default function ExperimentForm(props) {
                     placeholder="My test experiment"
                     className="input"
                 />
+                {getError(props.validationErrors, 'name')}
             </div>
 
             <label className="label">Experiment Exposure (In %)</label>
@@ -26,6 +36,7 @@ export default function ExperimentForm(props) {
                     placeholder="50"
                     className="input"
                 />
+                {getError(props.validationErrors, 'exposure')}
             </div>
 
             <div className="control is-grouped">

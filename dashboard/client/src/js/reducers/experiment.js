@@ -32,6 +32,9 @@ export default (state = initialState, action) => {
             experiments = state.experiments.filter(e => e.id !== action.experiment.id);
             experiments.push(action.experiment);
 
+            // Sorting to maintain the original order
+            experiments = experiments.sort((e1, e2) => e2.createTime - e1.createTime);
+
             return {
                 ...state,
                 experiments

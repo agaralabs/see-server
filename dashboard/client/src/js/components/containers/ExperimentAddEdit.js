@@ -13,7 +13,8 @@ class ExperimentAddEdit extends Component {
         super(props);
 
         this.state = {
-            editableExperiment: {}
+            editableExperiment: {},
+            validationErrors: null
         };
 
         this.onExperimentInfoChange = this.onExperimentInfoChange.bind(this);
@@ -63,6 +64,16 @@ class ExperimentAddEdit extends Component {
             ...this.state.editableExperiment
         };
 
+        const validationErrors = ExperimentModel.validate(experiment);
+
+        this.setState({
+            validationErrors
+        });
+
+        if (validationErrors) {
+            return;
+        }
+
         if (experiment.id) {
             this.props.actions.updateExperiment(experiment)
                 .then(() => History.push(`/experiments/${experiment.id}`));
@@ -107,6 +118,7 @@ class ExperimentAddEdit extends Component {
         return (
             <ExperimentForm
                 experiment={experiment}
+                validationErrors={this.state.validationErrors}
                 onExperimentInfoChange={this.onExperimentInfoChange}
                 onFormSubmit={this.onFormSubmit}
                 onFormCancel={this.onFormCancel}
