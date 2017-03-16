@@ -11,7 +11,7 @@ function sqlToObj(row) {
     e.name             = row.name;
     e.exposure_percent = row.exposure_percent;
     e.version          = row.version;
-    e.metric_name      = row.metric_name || "";
+    e.metric_name      = row.metric_name || '';
     e.is_active        = Boolean(row.is_active);
     e.is_deleted       = Boolean(row.is_deleted);
     e.create_time      = Number(row.create_time);

@@ -9,11 +9,12 @@ var chi_squared = require('chi-squared-test');
 var models    = require('./models');
 var container = require('./container');
 var config    = require('./config');
+var logger    = require('./logger');
 var app       = express();
 
 app.use(bp.json());
 app.use(cp());
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
     res.header('Access-Control-Allow-Origin', config.app.cors_allowed_origins);
     res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -429,13 +430,12 @@ app.get('/experiments/:experiment_id/stats/counts', wrap(function *(req, res, ne
             req.query.version ? req.query.version : experiment.version,
             vrtn.id
         ).then(function (counts) {
-            console.log(counts);
             var varcount = new models.VariationCountT();
             // remove participation from "counts" and add it to "variation"
             var participation = 0;
             var participationIndex = -1;
             for (var i = 0; i < counts.length; i++) {
-                if (counts[i].key == "participation") {
+                if (counts[i].key == 'participation') {
                     participation = counts[i].value;
                     participationIndex = i;
                     break;
@@ -471,7 +471,7 @@ function addTestStatistics(variations) {
         if (variations[i].is_control) {
             for (var j = 0; j < variations.length; j++) {
                 if (!variations[j].is_control && i != j) {
-                    compareControlVariation(variations[i], variations[j], "multinomial");
+                    compareControlVariation(variations[i], variations[j], 'multinomial');
                 }
             }
             break;
@@ -494,31 +494,21 @@ function compareControlVariation(control, variation, distribution) {
             var expected;
             var reduction;
             if (ctrl_count.key == var_count.key) {
-                if (distribution == "binomial") {
-                    console.log("control",ctrl_count);
-                    console.log("variation",var_count);
+                if (distribution == 'binomial') {
                     control_success = Number(ctrl_count.value);
                     control_failure = control.participation - Number(ctrl_count.value);
                     variation_success = Number(var_count.value);
                     variation_failure = variation.participation - Number(var_count.value);
-                    fisherP = fisher(control_success,control_failure,variation_success,variation_failure);
-                    console.log(control_success,control_failure,variation_success,variation_failure);
-                    console.log(fisherP.toPrecision(5));
+                    fisherP = fisher(control_success, control_failure, variation_success, variation_failure);
                     var_count.pvalue = fisherP.toPrecision(5);
                 }
-                if (distribution == "gaussian") {
-                    console.log("control",ctrl_count);
-                    console.log("variation",var_count);
+                if (distribution == 'gaussian') {
                     zscore = getZScore(ctrl_count.rate, control.participation,
             var_count.rate, variation.participation);
                     var_count.zscore = zscore;
                     var_count.pvalue = getPValue(zscore);
-                    console.log(ctrl_count.rate, control.participation,
-            var_count.rate, variation.participation,var_count.zscore,var_count.pvalue);
                 }
-                if (distribution == "multinomial") {
-                    console.log("control",ctrl_count);
-                    console.log("variation",var_count);
+                if (distribution == 'multinomial') {
                     control_success = Number(ctrl_count.value);
                     control_failure = control.participation - Number(ctrl_count.value);
                     variation_success = Number(var_count.value);
@@ -526,12 +516,11 @@ function compareControlVariation(control, variation, distribution) {
                     // expected vaues under null hypotheses
                     nh_variation_success = (ctrl_count.rate*variation.participation).toFixed(0);
                     nh_variation_failure = variation.participation - nh_variation_success;
-                    observed = [control_success,control_failure,variation_success,variation_failure];
-                    expected = [control_success,control_failure,nh_variation_success,nh_variation_failure];
+                    observed = [control_success, control_failure, variation_success, variation_failure];
+                    expected = [control_success, control_failure, nh_variation_success, nh_variation_failure];
                     // reduction in degrees of freedom
                     reduction = 2;
                     var_count.pvalue = chi_squared(observed, expected, reduction);
-                    console.log(observed, expected, reduction,var_count.pvalue);
                 }
             }
         });
@@ -697,12 +686,12 @@ app.get('/allocate', wrap(function* (req, res) {
 }));
 
 app.use('/track', function (req, res) {
-    console.log('Tracked', req.query);
+    logger.track(req);
     res.sendStatus(200);
 });
 
 app.use(function (err, req, res) {
-    console.error(err.stack);
+    logger.error(err.stack);
     res.status(500);
     res.json({
         err_code : 'UNKNOWN',
