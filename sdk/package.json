@@ -1,12 +1,12 @@
 {
   "name": "sieve-js",
-  "version": "1.6.0",
+  "version": "0.0.1",
   "description": "Client side js sdk for Sieve A/B Testing framework",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Ramnique Singh",
+  "author": "Agara Labs",
   "license": "ISC",
   "dependencies": {
     "js-cookie": "^2.1.3",
