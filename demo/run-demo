@@ -12,7 +12,7 @@ CONFIGREADER="${SRCDIR}/.read_ini ${CONFIGFILE}"
 # Install dependencies ---------------------------
 
 ## Server dependencies
-cd ${SEVERDIR}
+cd ${SERVERDIR}
 npm install 
 
 ## Client dependencies

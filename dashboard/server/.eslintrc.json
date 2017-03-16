@@ -22,7 +22,7 @@
         "capitalized-comments": "off",
         "class-methods-use-this": "error",
         "comma-dangle": "error",
-        "comma-spacing": "off",
+        "comma-spacing": "error",
         "comma-style": [
             "error",
             "last"
@@ -111,7 +111,7 @@
         "no-compare-neg-zero": "error",
         "no-confusing-arrow": "error",
         "no-continue": "error",
-        "no-console": "warn",
+        "no-console": "error",
         "no-div-regex": "error",
         "no-duplicate-imports": "error",
         "no-else-return": "error",
@@ -249,7 +249,13 @@
         "prefer-spread": "error",
         "prefer-template": "off",
         "quote-props": "off",
-        "quotes": "off",
+        "quotes": [
+            "error", 
+            "single", 
+            {
+                "avoidEscape": true
+            }
+        ],
         "radix": "error",
         "require-await": "error",
         "require-jsdoc": "off",
@@ -266,7 +272,14 @@
         "sort-keys": "off",
         "sort-vars": "off",
         "space-before-blocks": "error",
-        "space-before-function-paren": "off",
+        "space-before-function-paren": [
+            "error",
+            {
+                "anonymous": "always",
+                "named": "ignore",
+                "asyncArrow": "ignore"
+            }
+        ],
         "space-in-parens": "off",
         "space-infix-ops": "off",
         "space-unary-ops": "error",
