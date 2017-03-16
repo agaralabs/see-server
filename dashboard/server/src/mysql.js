@@ -7,6 +7,7 @@ var pool   = mysql.createPool({
     password        : config.mysql.password,
     database        : config.mysql.database
 });
+var logger  = require('./logger');
 
 function pquery(sql, params) {
     var that = this;
@@ -16,8 +17,7 @@ function pquery(sql, params) {
             if (err) {
                 return reject(err);
             }
-            console.log();
-            console.log('exec----> ',mysql.format(sql.sql ? sql.sql : sql, params));
+            logger.info('MySQL Query: %s', mysql.format(sql.sql ? sql.sql : sql, params));
             conn.query(sql, params, function (err, result) {
                 conn.release();
                 if (err) {

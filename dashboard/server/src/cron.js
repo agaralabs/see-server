@@ -1,17 +1,12 @@
 var config = require('./config');
-var pg = require('./postgres');
+var pg     = require('./postgres');
 var moment = require('moment-timezone');
-var shell = require('exec-sh');
-var co = require('co');
-
-function tlog() {
-    console.log();
-    console.log();
-    console.log.apply(this, [moment().format()].concat([].slice.call(arguments)));
-}
+var shell  = require('exec-sh');
+var co     = require('co');
+var logger = require('./logger');
 
 function shellex(cmd) {
-    tlog('\t-> ' + cmd);
+    logger.info(cmd);
     return new Promise(function (resolve, reject) {
         shell(cmd, true, function (err, stdout, stderr) {
             var result = {
@@ -21,8 +16,8 @@ function shellex(cmd) {
             };
 
             if (err) {
-                console.log(stdout);
-                console.log(stderr);
+                logger.error(stdout);
+                logger.error(stderr);
                 return reject(err);
             }
 
@@ -33,10 +28,10 @@ function shellex(cmd) {
 
 init()
     .then(function () {
-        tlog('exiting');
+        logger.info('exiting');
     })
     .catch(function (err) {
-        tlog('error!', err.stack);
+        logger.error('error!', err.stack);
     });
 
 function init() {
@@ -45,7 +40,7 @@ function init() {
 
         var now = moment();
         var uid = now.format('YYYY/MM/DD/HH_mm_ss');
-        tlog("> Task ID: ", uid);
+        logger.info('Task ID: %s', uid);
 
         // If a from date is passed, use that, othwerwise
         // fetch the last record date from redshift
@@ -141,6 +136,6 @@ function getSparkEnvVars() {
         ['DB_PASS', config.analysisdb.password],
         ['DB_NAME', config.analysisdb.database],
         ['DB_TEMP', config.analysisdb.tempdir]
-    ].map(function (e) { console.log(e); return e.join('='); });
+    ].map(function (e) { return e.join('='); });
 }
 
