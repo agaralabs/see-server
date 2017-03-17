@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 SRCDIR=$(dirname $(cd ${0%/*} 2>>/dev/null ; echo `pwd`/${0##*/})) 
 PRJDIR=${SRCDIR}/..
@@ -29,18 +30,20 @@ npm install
 
 # Build ------------------------------------------
 
+API_URL=`${CONFIGREADER} app api_url`
+
 ## Client
 cd ${CLIENTDIR}
-npm run build
+API_URL=${API_URL} npm run build
 rm -r ${DEMODIR}/dist-dashboard
 cp -R ${CLIENTDIR}/dist ${DEMODIR}/dist-dashboard
 ### TODO: set api url in the build directory
 
 ## Demo app
 cd ${DEMODIR}
-rm -r dist-demo
-cp -R client dist-demo
-node_modules/browserify/bin/cmd.js dist-demo/main.js -o dist-demo/bundle.js
+rm -rf dist-demo
+cp -R app dist-demo
+node_modules/.bin/browserify -t [ envify --API_URL ${API_URL} ] dist-demo/main.js -o dist-demo/bundle.js
 rm dist-demo/main.js
 
 ## Server

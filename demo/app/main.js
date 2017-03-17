@@ -1,7 +1,7 @@
-var Sieve = require('../../sdk');
+var Sieve = require('sieve-js');
 
 var client = new Sieve({
-    base_url: 'http://localhost:8090'
+    base_url: process.env.API_URL || 'http://localhost:8090'
 });
 
 client.allocate()
