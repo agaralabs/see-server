@@ -14,7 +14,7 @@ echo_and_eval "npm install"
 
 print_task_name "Install java dependencies"
 echo_and_eval "cd ${SERVERDIR}/data-processor"
-echo_and_eval "mvn dependency:resolve"
+echo_and_eval "mvn dependency:go-offline"
 
 # CLIENT
 print_task_name "Set CWD"

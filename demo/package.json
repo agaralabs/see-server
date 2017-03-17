@@ -21,6 +21,8 @@
   "homepage": "https://github.com/agaralabs/sieve#readme",
   "dependencies": {
     "browserify": "^14.1.0",
-    "express": "^4.15.2"
+    "envify": "^4.0.0",
+    "express": "^4.15.2",
+    "sieve-js": "0.0.1"
   }
 }
