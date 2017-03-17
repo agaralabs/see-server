@@ -9,8 +9,8 @@ dependencies:
         - gem install scss_lint
         - .bin/dependencies.sh
     cache_directories:
-        - "dashboard/server/npm_modules"
-        - "dashboard/client/npm_modules"
+        - "dashboard/server/node_modules"
+        - "dashboard/client/node_modules"
 
 test:
     override:
