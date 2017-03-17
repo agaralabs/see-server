@@ -1,5 +1,5 @@
 const baseUrl = '//sieve.io';
-const apiBase = 'https://see.arawind.com';
+const apiBase = process.env.API_URL; // eslint-disable-line no-process-env
 
 
 export default {
