@@ -17,12 +17,14 @@
   "dependencies": {
     "bluebird": "^3.4.6",
     "body-parser": "^1.15.2",
+    "chi-squared-test": "^1.1.0",
     "co": "^4.6.0",
     "co-express": "^1.2.2",
     "co-sleep": "0.0.1",
     "cookie-parser": "^1.4.3",
     "exec-sh": "^0.2.0",
     "express": "^4.14.0",
+    "fishertest": "^0.1.0",
     "mathjs": "^3.9.1",
     "moment-timezone": "^0.5.11",
     "mysql": "^2.11.1",
@@ -31,8 +33,7 @@
     "protobufjs": "^5.0.1",
     "redis": "^2.6.3",
     "uuid": "^3.0.1",
-    "fishertest": "^0.1.0",
-    "chi-squared-test": "^1.1.0"
+    "winston": "^2.3.0"
   },
   "devDependencies": {
     "eslint": "^3.17.1"
