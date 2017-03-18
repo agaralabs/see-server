@@ -15,4 +15,4 @@ dependencies:
 test:
     override:
         - .bin/test.sh
-        - .bin/build.sh
+        - CONFIG_PATH=`pwd`/demo/demo-config.ini .bin/build.sh
