@@ -4,65 +4,50 @@ set -e
 SRCDIR=$(dirname $(cd ${0%/*} 2>>/dev/null ; echo `pwd`/${0##*/})) 
 PRJDIR=${SRCDIR}/..
 DEMODIR=${SRCDIR}
-SERVERDIR=${PRJDIR}/dashboard/server
-CLIENTDIR=${PRJDIR}/dashboard/client
+. ${PRJDIR}/.bin/util.sh
+
 SDKDIR=${PRJDIR}/sdk
-CONFIGFILE=${SRCDIR}/demo-config.ini
-CONFIGREADER="${SRCDIR}/.read_ini ${CONFIGFILE}"
+export CONFIG_PATH=${DEMODIR}/demo-config.ini
+CONFIG_READER="${PRJDIR}/.bin/ini_reader ${CONFIG_PATH}"
+
+# Do not build data processor module
+export WITHOUT_DATAPROC=1
+export WITH_DEMO=1
 
 # Install dependencies ---------------------------
 
-## Server dependencies
-cd ${SERVERDIR}
-npm install 
-
-## Client dependencies
-cd ${CLIENTDIR}
-npm install
-
-## SDK dependencies
-cd ${SDKDIR}
-npm install
-
-## Demo dependencies
-cd ${DEMODIR}
-npm install
+${PRJDIR}/.bin/dependencies.sh
 
 # Build ------------------------------------------
 
-API_URL=`${CONFIGREADER} app api_url`
+${PRJDIR}/.bin/build.sh
 
-## Client
-cd ${CLIENTDIR}
-API_URL=${API_URL} npm run build
-rm -r ${DEMODIR}/dist-dashboard
-cp -R ${CLIENTDIR}/dist ${DEMODIR}/dist-dashboard
-### TODO: set api url in the build directory
+# Database ---------------------------------------
+cd ${DISTDIR}
 
-## Demo app
-cd ${DEMODIR}
-rm -rf dist-demo
-cp -R app dist-demo
-node_modules/.bin/browserify -t [ envify --API_URL ${API_URL} ] dist-demo/main.js -o dist-demo/bundle.js
-rm dist-demo/main.js
-
-## Server
-MYSQL_HOST=`${CONFIGREADER} mysql host`
-MYSQL_USER=`${CONFIGREADER} mysql user`
-MYSQL_PASS=`${CONFIGREADER} mysql password`
-MYSQL_DATABASE=`${CONFIGREADER} mysql database`
+MYSQL_HOST=`${CONFIG_READER} mysql host`
+MYSQL_USER=`${CONFIG_READER} mysql user`
+MYSQL_PASS=`${CONFIG_READER} mysql password`
+MYSQL_DATABASE=`${CONFIG_READER} mysql database`
 
 MYSQL_CMD="mysql -h ${MYSQL_HOST} -u ${MYSQL_USER} -p${MYSQL_PASS} ${MYSQL_DATABASE}" 
 
 ${MYSQL_CMD} -s -N -e "SELECT count(*) FROM experiments;" > /dev/null 2>&1
 
 if  [[ $? -ne 0 ]]; then
-    for DELTA in ${SERVERDIR}/db/mysql-*.sql; do
-        ${MYSQL_CMD} < ${DELTA} || { echo "FAILED APPLYING DELTA ${DELTA}"; exit 1; }
-    done
+    ${MYSQL_CMD} < ${DISTDIR}/server/db/mysql_schema.sql \
+        || { echo "FAILED APPLYING SCHEMA"; exit 1; }
 fi
 
 # Run --------------------------------------------
+
+export NODE_ENV=production
+
+cd ${DISTDIR}/server
+npm install
+
+cd ${DISTDIR}/demo
+npm install
 
 NODE_EXEC="node"
 NODE_VERSION=`node --version`
@@ -70,12 +55,6 @@ if [[ ${NODE_VERSION:0:2} == "v4" ]]; then
     NODE_EXEC="node --harmony"
 fi
 
-cp ${SERVERDIR}/src/config/config.ini ${SERVERDIR}/src/config/config.ini.bkp
-cp ${DEMODIR}/demo-config.ini ${SERVERDIR}/src/config/config.ini
-
 ## Dashboard
-cd ${DEMODIR}
+cd ${DISTDIR}/demo
 $NODE_EXEC app.js
-
-cp ${SERVERDIR}/src/config/config.ini.bkp ${SERVERDIR}/src/config/config.ini
-rm ${SERVERDIR}/src/config/config.ini.bkp

@@ -5,6 +5,7 @@ PROJECTDIR="${SRCDIR}/.."
 
 SERVERDIR="${PROJECTDIR}/dashboard/server"
 CLIENTDIR="${PROJECTDIR}/dashboard/client"
+DEMODIR="${PROJECTDIR}/demo"
 DISTDIR="${PROJECTDIR}/dist"
  
 function print_task_name() {
