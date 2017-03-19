@@ -23,6 +23,7 @@ ${PRJDIR}/.bin/dependencies.sh
 ${PRJDIR}/.bin/build.sh
 
 # Database ---------------------------------------
+echo "Setting up database"
 cd ${DISTDIR}
 
 MYSQL_HOST=`${CONFIG_READER} mysql host`
@@ -32,11 +33,14 @@ MYSQL_DATABASE=`${CONFIG_READER} mysql database`
 
 MYSQL_CMD="mysql -h ${MYSQL_HOST} -u ${MYSQL_USER} -p${MYSQL_PASS} ${MYSQL_DATABASE}" 
 
-${MYSQL_CMD} -s -N -e "SELECT count(*) FROM experiments;" > /dev/null 2>&1
+echo "Testing if schema was loaded"
 
-if  [[ $? -ne 0 ]]; then
+if ! ${MYSQL_CMD} -s -N -e "SELECT count(*) FROM experiments;" > /dev/null 2>&1; then
+    echo "Loading schema"
     ${MYSQL_CMD} < ${DISTDIR}/server/db/mysql_schema.sql \
-        || { echo "FAILED APPLYING SCHEMA"; exit 1; }
+        || { echo "FAILED APPLYING SCHEMA" && exit 1; }
+    ${MYSQL_CMD} < ${DISTDIR}/demo/demo-data.sql \
+        || { echo "FAILED INSERTING DATA" && exit 1; }
 fi
 
 # Run --------------------------------------------

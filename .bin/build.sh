@@ -49,7 +49,7 @@ if [[ "${WITH_DEMO}" -eq "1" ]]; then
     cd ${DEMODIR}
     rm -rf dist
     mkdir dist
-    cp app.js package.json dist
+    cp app.js package.json demo-data.sql dist
     cp -R public dist
     node_modules/.bin/browserify -t [ envify --API_URL ${API_URL} ] dist/public/main.js -o dist/public/bundle.js
     rm dist/public/main.js
