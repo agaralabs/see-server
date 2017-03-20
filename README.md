@@ -117,7 +117,7 @@ cd dist/dashboard
 python -m SimpleHTTPServer 8000
 ```
 
-##Contributing
+## Contributing
 
 For bugs and support, please raise an issue on this repository.
 
