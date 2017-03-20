@@ -6,10 +6,10 @@ export default function (props) {
         <footer className="footer has-text-centered">
             <strong>Sieve</strong>. The source code is licensed under
             <Link
-                to="http://opensource.org/licenses/mit-license.php"
+                to="http://www.apache.org/licenses/LICENSE-2.0"
                 target="_blank"
             >
-                MIT
+                Apache 2
             </Link>
         </footer>
     );

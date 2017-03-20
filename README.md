@@ -127,3 +127,8 @@ To contribute, please fork the project and raise a pull request. Make sure to ru
 .bin/test.sh
 .bin/build.sh
 ```
+
+
+##License
+
+Apache 2.0
