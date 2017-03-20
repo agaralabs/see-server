@@ -6,7 +6,15 @@
 - [Installing](#installing)
 - [Contributing](#contributing)
 
-## Overview
+Sieve is a simple API-based a/b testing framework designed for ease of use and quick to start. It is meant
+for those organizations who prefer to build and operate their own a/b testing framework rather than using
+a third party service.
+
+## Why Sieve?
+
+## Features
+
+## Overview of project
 
 This project is divided into three components:
 
