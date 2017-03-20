@@ -1,5 +1,6 @@
-#Sieve Demo
-Clone the repository if you haven't
+# Sieve Demo
+
+Clone the repository if you haven't already
 
 ```shell
 git clone https://github.com/agaralabs/sieve.git

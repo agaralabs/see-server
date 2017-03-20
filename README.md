@@ -1,4 +1,4 @@
-#Sieve A/B testing framework
+# Sieve A/B testing framework
 
 - [Overview](#overview)
 - [Requirements](#requirements)
@@ -10,9 +10,9 @@
 
 This project is divided into three components:
 
-1. **API Server**: provides endpoints to manage the experiments. Also handles experiment allocation, tracking and reporting
-1. **Dashboard**: is the admin UI for managing experiments and tracking their performance
-1. **SDK**: hosts the npm module sieve-js, which is to be integrated by an app that wants to perform the A/B test
+1. **SDK**: hosts the npm module sieve-js, which is to be integrated by an app or website that wants to perform the A/B test.
+1. **API Server**: provides endpoints to create and manage the a/b tests aka experiments. Also handles experiment allocation, tracking and reporting.
+1. **Dashboard**: is the admin UI for (1) managing experiments and (2) tracking their performance as the experiment receives traffic.
 
 TODO: Add more information about the flow and the directory structure
 
@@ -117,7 +117,7 @@ cd dist/dashboard
 python -m SimpleHTTPServer 8000
 ```
 
-##Contributing
+## Contributing
 
 For bugs and support, please raise an issue on this repository.
 
