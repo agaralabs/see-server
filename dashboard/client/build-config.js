@@ -1,5 +1,3 @@
-'use strict';
-
 let isWatchEnabled = false;
 const ENV = process.env.NODE_ENV || 'development'; // eslint-disable-line no-process-env
 const API_URL = process.env.API_URL || 'https://see.arawind.com'; // eslint-disable-line no-process-env

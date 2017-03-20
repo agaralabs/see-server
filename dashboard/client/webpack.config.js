@@ -3,8 +3,6 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const config = require('./build-config');
 
-// const pkg = require('./package.json');
-
 /**
  * Returns the Output file config based on
  * the run-time environment
@@ -36,9 +34,9 @@ function getLoaders() {
         {
             test: /\.scss$/,
             exclude: /node_modules/,
-            loaders: ExtractTextPlugin.extract({
-                fallbackLoader: 'style-loader',
-                loader: ['css-loader', 'postcss-loader', 'sass-loader']
+            use: ExtractTextPlugin.extract({
+                fallback: 'style-loader',
+                use: ['css-loader', 'postcss-loader', 'sass-loader']
             })
         },
         {
