@@ -79,7 +79,8 @@ function getPlugins() {
         new webpack.NamedModulesPlugin(),
 
         new webpack.DefinePlugin({
-            'process.env.NODE_ENV': JSON.stringify(config.ENV)
+            'process.env.NODE_ENV': JSON.stringify(config.ENV),
+            'process.env.API_URL': JSON.stringify(config.API_URL)
         }),
 
         new webpack.LoaderOptionsPlugin({
