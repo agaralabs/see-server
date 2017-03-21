@@ -10,8 +10,14 @@ const config = require('./build-config');
  * @return {Object} Webpack's config for `output`
  */
 function getOutputFilesConfig() {
+    let filename = '[name].js';
+
+    if (config.ENV === 'production') {
+        filename = '[name].[hash].js';
+    }
+
     return {
-        filename: '[name].js',
+        filename: filename,
         path: config.path.dist + '/bundles',
         publicPath: '/bundles'
     };
@@ -58,15 +64,16 @@ function getLoaders() {
  * @return {Array} Webpack's config for `plugins`
  */
 function getPlugins() {
+    let cssFilename = '[name]';
+
+    if (config.ENV === 'production') {
+        cssFilename = '[name].[contenthash]';
+    }
+
     const plugins = [
-
-        // new webpack.optimize.CommonsChunkPlugin({
-        //     name: 'vendors',
-        //     minChunks: Infinity,
-        //     filename: '[name].js'
-        // }),
-
-        new ExtractTextPlugin('main.css'),
+        new ExtractTextPlugin({
+            filename: cssFilename + '.css'
+        }),
 
         new HtmlWebpackPlugin({
             filename: config.path.dist + '/index.html',
@@ -122,8 +129,6 @@ module.exports = {
         app: [
             config.path.src + '/js/app.js'
         ]
-
-        // vendors: Object.keys(pkg.dependencies)
     },
 
     output: getOutputFilesConfig(),
