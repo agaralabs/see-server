@@ -2,6 +2,14 @@
 
 Client side npm module for Sieve A/B Testing framework
 
+This module meant to be compiled with the client-side js. It offers two simple functions:
+
+`allocate()`: fetch experiments and buckets for current user from see-server
+`track(event_name)`: track a user event
+
+The module takes care of generating unique user ids and persisting state of allocated experiments across pages implicitly.
+
+
 ## Set up and integration
 
 Install module using npm:
