@@ -105,7 +105,7 @@ export function fetchStatsForExperiment(expId) {
 
         return StatsApi.getStatsForExperiment(expId)
             .then(res => {
-                const actions = res.data.variations.map(v => {
+                const actions = res.data.counts.map(v => {
                     const events = v.unique_counts.map(uc => new EventModel(uc));
 
                     return _updateVariationEventsMapping(v.id, events);
@@ -139,7 +139,7 @@ export function fetchTimelineForExperiment(expId, from, to, granularity = 'daily
 
         return StatsApi.getTimelineForExperiment(expId, from.toISOString(), to.toISOString(), granularity)
             .then(res => {
-                const timeline = new TimelineModel(expId, res.data.variations);
+                const timeline = new TimelineModel(expId, res.data.timelines);
 
                 const actions = [
                     _updateExpTimelineMapping(expId, timeline),
