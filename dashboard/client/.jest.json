@@ -1,8 +1,0 @@
-{
-    "testPathIgnorePatterns": [
-        "<rootDir>/__tests__/mock*",
-        "<rootDir>/__tests__/setup",
-        "<rootDir>/__tests__/actionCreators"
-    ],
-    "verbose": true
-}
