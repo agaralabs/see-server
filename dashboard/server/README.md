@@ -6,7 +6,6 @@ It allocates experiments and provides a REST-ful API to manage experiments.
 ## Requirements
 
 - node >= 4
-- nginx
 - redis server
 - mysql server
 - redshift (or postgres) server

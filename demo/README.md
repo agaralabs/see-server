@@ -18,7 +18,6 @@ Ensure you have the following installed and the services running:
 - NodeJS (prefer v6+)
 - MySQL
 - Redis
-- PostgreSQL (optional for the demo)
 
 Create the database and the user, and grant correct permissions in MySQL:
 
@@ -36,7 +35,10 @@ To run the demo:
 ./run-demo
 ```
 
-This will install the dependencies, build the project, create tables and seed it with data. Any issues during this process will be thrown as an error. Re-run the command after fixing it. If it is database related, it is better to delete all tables before rerunning.
+This will install the dependencies, build the project, create tables and seed it with data.
+Any issues during this process will be thrown as an error. 
+Re-run the command after fixing it. 
+If it is database related, it is better to delete all the tables before rerunning.
 
 After this, the dashboard should be running on [http://localhost:8000](http://localhost:8000) and the demo app on [http://localhost:8000/demo](http://localhost:8000/demo)
 
