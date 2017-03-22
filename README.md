@@ -6,13 +6,25 @@
 - [Installing](#installing)
 - [Contributing](#contributing)
 
-Sieve is a simple API-based a/b testing framework designed for ease of use and quick to start. It is meant
+Sieve is a simple API-based a/b testing framework designed for ease and speed of use. It is meant
 for those organizations who prefer to build and operate their own a/b testing framework rather than using
 a third party service.
 
 ## Why Sieve?
 
+There are several third party optimization and a/b testing cloud services, but for a variety of reasons -- such as cost,
+privacy, flexibility -- you might want to roll your own. Sieve is exactly for this purpose.
+
 ## Features
+
+- Easy to use (REST API Driven)
+- All-in-one integrated: client side SDK, dashboard and backend analytics.
+- Your data is owned by you. No need to send your data to a third party service provider.
+- Inexpensive. Most third party services are too expensive. Some of them charge not per user but for every experiment that a user is a part of.
+- Real-time allocation of users to buckets
+- Pluggable design. Determination of statistical significance depends on the assumption of underlying distribution.
+Sieve comes with Chi-square and normal distributions built-in and you
+can plugin your own distribution if you want.
 
 ## Overview of project
 
