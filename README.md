@@ -1,14 +1,16 @@
 # Sieve A/B testing framework
 
-- [Overview](#overview)
+Sieve is a simple API-based a/b testing framework designed for ease and speed of use. It is meant
+for those organizations who prefer to build and operate their own a/b testing framework rather than using
+a third party service.
+
+- [Why Sieve](#why-sieve)
+- [Features](#features)
+- [Overview of project](#overview-of-project)
 - [Requirements](#requirements)
 - [Quick Start](#quick-start)
 - [Installing](#installing)
 - [Contributing](#contributing)
-
-Sieve is a simple API-based a/b testing framework designed for ease and speed of use. It is meant
-for those organizations who prefer to build and operate their own a/b testing framework rather than using
-a third party service.
 
 ## Why Sieve?
 
@@ -18,11 +20,12 @@ privacy, flexibility -- you might want to roll your own. Sieve is exactly for th
 ## Features
 
 - Easy to use (REST API Driven)
-- All-in-one integrated: client side SDK, dashboard and backend analytics.
+- Integrated client side SDK, dashboard and backend analytics.
 - Your data is owned by you. No need to send your data to a third party service provider.
 - Inexpensive. Most third party services are too expensive. Some of them charge not per user but for every experiment that a user is a part of.
-- Real-time allocation of users to buckets
-- Pluggable design. Determination of statistical significance depends on the assumption of underlying distribution.
+- Real-time allocation of users to buckets.
+- Pluggable design. Determination of statistical significance of results of any experiment
+depends on the assumptions of underlying distribution.
 Sieve comes with Chi-square and normal distributions built-in and you
 can plugin your own distribution if you want.
 
@@ -30,13 +33,13 @@ can plugin your own distribution if you want.
 
 This project is divided into three components:
 
-1. **SDK**: hosts the npm module sieve-js, which is to be integrated by an app or website that wants to perform the A/B test.
-1. **API Server**: provides endpoints to create and manage the a/b tests aka experiments. Also handles experiment allocation, tracking and reporting.
+1. **SDK**: hosts the npm module sieve-js, which is to be integrated by an app or website that wants to perform a/b tests.
+1. **API Server**: provides endpoints to create and manage the a/b tests (aka experiments). Also handles experiment allocation, tracking and reporting.
 1. **Dashboard**: is the admin UI for (1) managing experiments and (2) tracking their performance as the experiment receives traffic.
 
 The flow:
 
-1. Create an experiment using the dashboard, set it's exposure, add variations, and set their splits.
+1. Create an experiment using the dashboard, set its exposure, add variations, and set their splits.
 ![](https://agaralabs.github.io/sieve/images/screen-1.png)
 ![](https://agaralabs.github.io/sieve/images/screen-2.png)
 2. Integrate the SDK into your client, and request the server to allocate experiments and their variations. Trigger the required changes in the client based on the response.
@@ -59,8 +62,8 @@ The flow:
 	client.track('pay_btn_click');
 	```
 
-All the tracked events are stored in a file as JSON strings.
-This file(s) need to be processed offline at regular intervals, and then saved into the analytics database,
+All the tracked events are stored in files as JSON strings.
+These file(s) need to be processed offline at regular intervals, and then saved into the analytics database,
 for which there is a Spark Java application bundled along with the server code.
 Using this will require a Spark or EMR cluster to be set up.
 If you prefer to not do this, you can write your own scripts to parse the log files and save it in the database.
@@ -73,7 +76,7 @@ If you prefer to not do this, you can write your own scripts to parse the log fi
 - Redis
 - Redshift cluster / PostgreSQL server
 
-*(Optional)* For Data Processing:
+*(Optional)* For building the Java Data Processing app:
 
 - JDK 8
 - Maven 3
@@ -107,7 +110,7 @@ CREATE USER sieveuser IDENTIFIED BY "password";
 GRANT ALL PRIVILEGES ON sieve_demo.* TO sieveuser;
 ```
 
-If you need to, modify the `demo-config.ini`. For more details, refer [this document](dashboard/server/README.md#configuration)
+If you need to, modify the `demo-config.ini`. For more details, refer to [this document](dashboard/server/README.md#configuration)
 
 Finally, run the demo:
 
@@ -127,7 +130,7 @@ The demo app's tracking logs should be written to the `tracker.logfile` path in 
 
 ## Installing
 
-If you haven't already cloned the repo, do so, as given at the beginning of Quickstart.
+If you haven't already cloned the repo, do so, as given at the beginning of #quickstart.
 
 **Install the dependencies:**
 
