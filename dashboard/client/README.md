@@ -26,7 +26,7 @@ git clone <OUR_REPOSITORY_URL>
 
 After we have forked & downloaded the code locally, we will install the npm modules
 ```sh
-$ cd sieve-client
+$ cd sieve/dashboard/client/
 $ npm i
 ```
 ### Building the code
@@ -135,4 +135,4 @@ $ npm run lint
 
 ### License
 
-MIT
+Apache 2.0

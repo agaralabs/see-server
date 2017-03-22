@@ -3,8 +3,6 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const config = require('./build-config');
 
-// const pkg = require('./package.json');
-
 /**
  * Returns the Output file config based on
  * the run-time environment
@@ -12,8 +10,14 @@ const config = require('./build-config');
  * @return {Object} Webpack's config for `output`
  */
 function getOutputFilesConfig() {
+    let filename = '[name].js';
+
+    if (config.ENV === 'production') {
+        filename = '[name].[hash].js';
+    }
+
     return {
-        filename: '[name].js',
+        filename: filename,
         path: config.path.dist + '/bundles',
         publicPath: '/bundles'
     };
@@ -36,9 +40,9 @@ function getLoaders() {
         {
             test: /\.scss$/,
             exclude: /node_modules/,
-            loaders: ExtractTextPlugin.extract({
-                fallbackLoader: 'style-loader',
-                loader: ['css-loader', 'postcss-loader', 'sass-loader']
+            use: ExtractTextPlugin.extract({
+                fallback: 'style-loader',
+                use: ['css-loader', 'postcss-loader', 'sass-loader']
             })
         },
         {
@@ -60,15 +64,16 @@ function getLoaders() {
  * @return {Array} Webpack's config for `plugins`
  */
 function getPlugins() {
+    let cssFilename = '[name]';
+
+    if (config.ENV === 'production') {
+        cssFilename = '[name].[contenthash]';
+    }
+
     const plugins = [
-
-        // new webpack.optimize.CommonsChunkPlugin({
-        //     name: 'vendors',
-        //     minChunks: Infinity,
-        //     filename: '[name].js'
-        // }),
-
-        new ExtractTextPlugin('main.css'),
+        new ExtractTextPlugin({
+            filename: cssFilename + '.css'
+        }),
 
         new HtmlWebpackPlugin({
             filename: config.path.dist + '/index.html',
@@ -124,8 +129,6 @@ module.exports = {
         app: [
             config.path.src + '/js/app.js'
         ]
-
-        // vendors: Object.keys(pkg.dependencies)
     },
 
     output: getOutputFilesConfig(),
