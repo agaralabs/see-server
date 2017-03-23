@@ -12,6 +12,7 @@ var config    = require('./config');
 var logger    = require('./logger');
 var app       = express();
 
+
 app.use(bp.json());
 app.use(cp());
 app.use(function (req, res, next) {
@@ -467,11 +468,27 @@ app.get('/experiments/:experiment_id/stats/counts', wrap(function *(req, res, ne
 // Compares control and variation
 // For formulas https://en.wikipedia.org/wiki/Statistical_hypothesis_testing
 function addTestStatistics(variations) {
+    var sampleSize = 0;
+    var distributionType;
+    for (var x = 0; x < variations.length; x++) {
+        sampleSize += Number(variations[x].participation);
+    }
+    if (sampleSize > 1000) {
+        if (variations.length > 2) {
+            distributionType = 'multinomial';
+        }
+        else {
+            distributionType = 'gaussian';
+        }
+    }
+    else {
+        distributionType = 'binomial';
+    }
     for (var i = 0; i < variations.length; i++) {
         if (variations[i].is_control) {
             for (var j = 0; j < variations.length; j++) {
                 if (!variations[j].is_control && i != j) {
-                    compareControlVariation(variations[i], variations[j], 'multinomial');
+                    compareControlVariation(variations[i], variations[j], distributionType);
                 }
             }
             break;
@@ -479,7 +496,7 @@ function addTestStatistics(variations) {
     }
 }
 
-function compareControlVariation(control, variation, distribution) {
+function compareControlVariation(control, variation) {
     control.unique_counts.map(function (ctrl_count) {
         variation.unique_counts.map(function (var_count) {
             var control_success;
@@ -494,34 +511,28 @@ function compareControlVariation(control, variation, distribution) {
             var expected;
             var reduction;
             if (ctrl_count.key == var_count.key) {
-                if (distribution == 'binomial') {
-                    control_success = Number(ctrl_count.value);
-                    control_failure = control.participation - Number(ctrl_count.value);
-                    variation_success = Number(var_count.value);
-                    variation_failure = variation.participation - Number(var_count.value);
-                    fisherP = fisher(control_success, control_failure, variation_success, variation_failure);
-                    var_count.pvalue = fisherP.toPrecision(5);
-                }
-                if (distribution == 'gaussian') {
-                    zscore = getZScore(ctrl_count.rate, control.participation,
-            var_count.rate, variation.participation);
-                    var_count.zscore = zscore;
-                    var_count.pvalue = getPValue(zscore);
-                }
-                if (distribution == 'multinomial') {
-                    control_success = Number(ctrl_count.value);
-                    control_failure = control.participation - Number(ctrl_count.value);
-                    variation_success = Number(var_count.value);
-                    variation_failure = variation.participation - Number(var_count.value);
-                    // expected vaues under null hypotheses
-                    nh_variation_success = (ctrl_count.rate*variation.participation).toFixed(0);
-                    nh_variation_failure = variation.participation - nh_variation_success;
-                    observed = [control_success, control_failure, variation_success, variation_failure];
-                    expected = [control_success, control_failure, nh_variation_success, nh_variation_failure];
-                    // reduction in degrees of freedom
-                    reduction = 2;
-                    var_count.pvalue = chi_squared(observed, expected, reduction);
-                }
+                control_success = Number(ctrl_count.value);
+                control_failure = control.participation - Number(ctrl_count.value);
+                variation_success = Number(var_count.value);
+                variation_failure = variation.participation - Number(var_count.value);
+                fisherP = fisher(control_success, control_failure, variation_success, variation_failure);
+                var_count.fisher_p_value = fisherP.toPrecision(5);
+                zscore = getZScore(ctrl_count.rate, control.participation,
+              var_count.rate, variation.participation);
+                var_count.zscore = zscore;
+                var_count.pvalue = getPValue(zscore);
+                control_success = Number(ctrl_count.value);
+                control_failure = control.participation - Number(ctrl_count.value);
+                variation_success = Number(var_count.value);
+                variation_failure = variation.participation - Number(var_count.value);
+                // expected vaues under null hypotheses
+                nh_variation_success = (ctrl_count.rate*variation.participation).toFixed(0);
+                nh_variation_failure = variation.participation - nh_variation_success;
+                observed = [control_success, control_failure, variation_success, variation_failure];
+                expected = [control_success, control_failure, nh_variation_success, nh_variation_failure];
+                // reduction in degrees of freedom
+                reduction = 2;
+                var_count.chi_squared_p_value = chi_squared(observed, expected, reduction).probability;
             }
         });
     });
