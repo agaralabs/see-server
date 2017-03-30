@@ -6,11 +6,13 @@ var math      = require('mathjs');
 var moment    = require('moment-timezone');
 var fisher    = require('fishertest');
 var chi_squared = require('chi-squared-test');
+var abbajs    = require('abbajs');
 var models    = require('./models');
 var container = require('./container');
 var config    = require('./config');
 var logger    = require('./logger');
 var app       = express();
+
 
 app.use(bp.json());
 app.use(cp());
@@ -38,7 +40,6 @@ app.get('/experiments', wrap(function* (req, res) {
     res.status(200);
     res.json({ data: { experiments: experiments } });
 }));
-
 
 app.post('/experiments', wrap(function* (req, res) {
     var experiment = new models.ExperimentT(req.body.experiment);
@@ -120,7 +121,6 @@ app.delete('/experiments/:id', wrap(function *(req, res, next) {
 
     res.json({ data: { experiment: fetched } });
 }));
-
 
 app.put('/experiments/:id', wrap(function *(req, res, next) {
     // fetch existing
@@ -355,7 +355,6 @@ app.put('/experiments/:experiment_id/variations/:variation_id', wrap(function *(
     res.json({ data: { variation: fetched } });
 }));
 
-
 app.delete('/experiments/:experiment_id/variations/:variation_id', wrap(function *(req, res, next) {
     var experiment = yield container.get('experiments_datamapper').fetchById(req.params.experiment_id);
 
@@ -467,11 +466,27 @@ app.get('/experiments/:experiment_id/stats/counts', wrap(function *(req, res, ne
 // Compares control and variation
 // For formulas https://en.wikipedia.org/wiki/Statistical_hypothesis_testing
 function addTestStatistics(variations) {
+    var sampleSize = 0;
+    var distributionType;
+    for (var x = 0; x < variations.length; x++) {
+        sampleSize += Number(variations[x].participation);
+    }
+    if (sampleSize > 1000) {
+        if (variations.length > 2) {
+            distributionType = 'multinomial';
+        }
+        else {
+            distributionType = 'gaussian';
+        }
+    }
+    else {
+        distributionType = 'binomial';
+    }
     for (var i = 0; i < variations.length; i++) {
         if (variations[i].is_control) {
             for (var j = 0; j < variations.length; j++) {
                 if (!variations[j].is_control && i != j) {
-                    compareControlVariation(variations[i], variations[j], 'multinomial');
+                    compareControlVariation(variations[i], variations[j], distributionType);
                 }
             }
             break;
@@ -479,61 +494,77 @@ function addTestStatistics(variations) {
     }
 }
 
-function compareControlVariation(control, variation, distribution) {
+function compareControlVariation(control, variation) {
     control.unique_counts.map(function (ctrl_count) {
         variation.unique_counts.map(function (var_count) {
-            var control_success;
-            var control_failure;
-            var variation_success;
-            var variation_failure;
-            var fisherP;
-            var zscore;
-            var nh_variation_success;
-            var nh_variation_failure;
-            var observed;
-            var expected;
-            var reduction;
+            var var_normal_stats = {};
             if (ctrl_count.key == var_count.key) {
-                if (distribution == 'binomial') {
-                    control_success = Number(ctrl_count.value);
-                    control_failure = control.participation - Number(ctrl_count.value);
-                    variation_success = Number(var_count.value);
-                    variation_failure = variation.participation - Number(var_count.value);
-                    fisherP = fisher(control_success, control_failure, variation_success, variation_failure);
-                    var_count.pvalue = fisherP.toPrecision(5);
+                var_normal_stats = getVarNormalStats(ctrl_count.rate,
+                  control.participation, var_count.rate, variation.participation);
+
+                for (var attrname in var_normal_stats) {
+                    if (Object.prototype.hasOwnProperty.call(var_normal_stats, attrname)) {
+                        var_count[attrname] = var_normal_stats[attrname];
+                    }
                 }
-                if (distribution == 'gaussian') {
-                    zscore = getZScore(ctrl_count.rate, control.participation,
-            var_count.rate, variation.participation);
-                    var_count.zscore = zscore;
-                    var_count.pvalue = getPValue(zscore);
-                }
-                if (distribution == 'multinomial') {
-                    control_success = Number(ctrl_count.value);
-                    control_failure = control.participation - Number(ctrl_count.value);
-                    variation_success = Number(var_count.value);
-                    variation_failure = variation.participation - Number(var_count.value);
-                    // expected vaues under null hypotheses
-                    nh_variation_success = (ctrl_count.rate*variation.participation).toFixed(0);
-                    nh_variation_failure = variation.participation - nh_variation_success;
-                    observed = [control_success, control_failure, variation_success, variation_failure];
-                    expected = [control_success, control_failure, nh_variation_success, nh_variation_failure];
-                    // reduction in degrees of freedom
-                    reduction = 2;
-                    var_count.pvalue = chi_squared(observed, expected, reduction);
-                }
+
+                var_count.fisher_p = getFisherP(ctrl_count.value, control.participation,
+                  var_count.value, variation.participation);
+
+                var_count.chi_squared_p = getChiSquaredP(ctrl_count.value, ctrl_count.rate,
+                  control.participation, var_count.value, variation.participation);
+
             }
         });
     });
 }
 
-function getZScore(ctrl_value, ctrl_count, var_value, var_count) {
+function getFisherP(ctrl_value, ctrl_count, var_value, var_count) {
+    var control_success = Number(ctrl_value);
+    var control_failure = ctrl_count - Number(ctrl_value);
+    var variation_success = Number(var_value);
+    var variation_failure = var_count - Number(var_value);
+    return fisher(control_success, control_failure, variation_success,
+      variation_failure).toPrecision(5);
+}
+
+function getChiSquaredP(ctrl_value, ctrl_rate, ctrl_count, var_value, var_count) {
+    var control_success = Number(ctrl_value);
+    var control_failure = ctrl_count - Number(ctrl_value);
+    var variation_success = Number(var_value);
+    var variation_failure = var_count - Number(var_value);
+    // expected vaues under null hypotheses
+    var nh_variation_success = (ctrl_rate*var_count).toFixed(0);
+    var nh_variation_failure = var_count - nh_variation_success;
+    var observed = [control_success, control_failure, variation_success, variation_failure];
+    var expected = [control_success, control_failure, nh_variation_success, nh_variation_failure];
+    // reduction in degrees of freedom
+    var reduction = 2;
+    return chi_squared(observed, expected, reduction).probability;
+}
+
+/*
+function getZScore(ctrl_rate, ctrl_count, var_rate, var_count) {
   // standard deviation formula from https://en.wikipedia.org/wiki/Binomial_distribution#Normal_approximation
   // zscore formula from https://en.wikipedia.org/wiki/Statistical_hypothesis_testing
   // Two-proportion z-test, pooled for H0: p1 = p2
-    var ctrl_std_err = Math.sqrt(ctrl_value * (1 - ctrl_value) / ctrl_count);
-    var var_std_err = Math.sqrt(var_value * (1 - var_value) / var_count);
-    return (ctrl_value - var_value) / Math.sqrt(Math.pow(ctrl_std_err, 2) + Math.pow(var_std_err, 2));
+    var ctrl_std_err = Math.sqrt(ctrl_rate * (1 - ctrl_rate) / ctrl_count);
+    var var_std_err = Math.sqrt(var_rate * (1 - var_rate) / var_count);
+    console.log(ctrl_rate,ctrl_count,ctrl_std_err,var_rate,var_count,var_std_err)
+    return (ctrl_rate - var_rate) / Math.sqrt(Math.pow(ctrl_std_err, 2) + Math.pow(var_std_err, 2));
+}*/
+
+function getVarNormalStats(ctrl_rate, ctrl_count, var_rate, var_count) {
+  // standard deviation formula from https://en.wikipedia.org/wiki/Binomial_distribution#Normal_approximation
+  // zscore formula from https://en.wikipedia.org/wiki/Statistical_hypothesis_testing
+  // Two-proportion z-test, pooled for H0: p1 = p2
+    var normal_stats = {};
+    var ctrl_std_err = Math.sqrt(ctrl_rate * (1 - ctrl_rate) / ctrl_count);
+    var var_std_err = Math.sqrt(var_rate * (1 - var_rate) / var_count);
+    normal_stats.zscore = (ctrl_rate - var_rate) / Math.sqrt(Math.pow(ctrl_std_err, 2) + Math.pow(var_std_err, 2));
+    normal_stats.pvalue = getPValue(normal_stats.zscore);
+    normal_stats.power = getPower(ctrl_rate, ctrl_std_err, var_rate, var_std_err);
+    return normal_stats;
 }
 
 function cdfNormal(x, mean, std_deviation) {
@@ -541,7 +572,15 @@ function cdfNormal(x, mean, std_deviation) {
 }
 
 function getPValue(x) {
-    return 1 - cdfNormal(x, 0, 1);
+    return 1-cdfNormal(x, 0, 1);
+}
+
+function getPower(ctrl_rate, ctrl_std_err, var_rate, var_std_err) {
+    var ctrl_distribution = new abbajs.Abba.NormalDistribution(ctrl_rate, ctrl_std_err);
+    var nh_acceptance_upper_bound = ctrl_distribution.inverseCdf(0.95);
+    var var_distribution = new abbajs.Abba.NormalDistribution(var_rate, var_std_err);
+    var var_beta = var_distribution.cdf(nh_acceptance_upper_bound);
+    return 1-var_beta;
 }
 
 app.get('/experiments/:experiment_id/stats/timeline/:from/:to/:granularity', wrap(function *(req, res, next) {
