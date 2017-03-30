@@ -15,6 +15,7 @@
   "license": "ISC",
   "homepage": "https://github.com/agaralabs/sieve-server#readme",
   "dependencies": {
+    "abbajs": "^0.1.4",
     "bluebird": "^3.4.6",
     "body-parser": "^1.15.2",
     "chi-squared-test": "^1.1.0",
